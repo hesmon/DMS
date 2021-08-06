@@ -35,7 +35,10 @@ df$Set = paste0("Set",df$Set)
 oligos_NN = readOligos()
 
 oligos_vec = strsplit(toupper(substr(oligos_NN[as.numeric(df$end)], 7, 9)), '')
-df$includeFinalFlankingResid = !unlist(lapply(oligos_vec, function(x){ all(x %in% c("A", "C", "G", "T"))}))
+ 
+
+tmp = !unlist(lapply(oligos_vec, function(x){ all(x %in% c("A", "C", "G", "T"))}))
+df$includeFinalFlankingResid = ifelse(tmp, 1, 0)
 
 
 ###############################################################
@@ -93,8 +96,8 @@ for(set in sets) {
         " Input_SortedBam=", bam_sorted_fname, " pathOut=", pathOut, " st=", df$st[i], 
         " end=", df$end[i], " ROI=", df$ROI[i], " pathToRef=\"/home/bahari/SarsCov/Ref_3CL.fasta\"",
         " set=\"", df$Set[i], "\" replicate=", df$Rep[i],
-        " includeFinalFlankingResid=", df$includeFinalFlankingResid[i] ,  "\'", 
-        " RScripts/bamToCount.R \n", sep='')
+        " includeFinalFlankingResid=", df$includeFinalFlankingResid[i] ,  " \'", 
+        " RScripts/bamToCount.r \n", sep='')
     cat("\n")
   }
   # cat("cd .. \n")
