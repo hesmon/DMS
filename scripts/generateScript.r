@@ -1,5 +1,5 @@
 rm(list=ls())
-source("scripts/bamToCountFunctions.r")
+source("scripts/common.r")
 
 dms_folder = "/home/bahari/all_dms_data/Reads/"
 folder_names = c("Set1", "Set10", "Set10R1", "Set10R2", "Set11", "Set12", "Set13", "Set13R1", "Set13R2",
@@ -64,8 +64,8 @@ for(set in sets) {
   idx = which(df$Set == set)
   files = files_in_sets[[folder]]
   for(i in idx) {
-    base_folder = paste0("outputs/fastq_files/", df$condition[i], "/")
-    bam_folder = paste0("outputs/bam_files/", df$condition[i], "/")
+    base_folder = paste0("../outputs/fastq_files/", df$condition[i], "/")
+    bam_folder = paste0("../outputs/bam_files/", df$condition[i], "/")
     cat("mkdir -p ", base_folder, "\n", sep='')
     cat("mkdir -p ", bam_folder, "\n", sep='')
     final_fastq = paste0(base_folder, set, "_rep", df$Rep[i], ".fastq")
@@ -90,14 +90,14 @@ for(set in sets) {
     # cat("samtools index ", bam_sorted, "\n")
     # cat("fi\n")
     bam_sorted_fname = paste0("\"", set, "_rep", df$Rep[i], "_sorted.bam\"")
-    pathOut = paste0("\"outputs/csv_files/", df$condition[i], "/\"")
+    pathOut = paste0("\"../outputs/csv_files/", df$condition[i], "/\"")
     bam_folder_str = paste0("\"", bam_folder, "\"")
     cat("R CMD BATCH --no-save --no-restore \'--args ", " bam_folder=", bam_folder_str,
         " Input_SortedBam=", bam_sorted_fname, " pathOut=", pathOut, " st=", df$st[i], 
         " end=", df$end[i], " ROI=", df$ROI[i], " pathToRef=\"/home/bahari/SarsCov/Ref_3CL.fasta\"",
         " set=\"", df$Set[i], "\" replicate=", df$Rep[i],
         " includeFinalFlankingResid=", df$includeFinalFlankingResid[i] ,  " \'", 
-        " RScripts/bamToCount.r \n", sep='')
+        " bamToCount.r \n", sep='')
     cat("\n")
   }
   # cat("cd .. \n")

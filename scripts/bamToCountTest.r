@@ -1,9 +1,9 @@
-# rm(list=ls())
-# source("scripts/bamToCountFunctions.r")
-# # library(Rsamtools)
-# library(GenomicAlignments)
-# library(tidyverse)
-# library(data.table)
+rm(list=ls())
+# library(Rsamtools)
+library(GenomicAlignments)
+library(tidyverse)
+library(data.table)
+source("scripts/common.r")
 
 oligo_9NN = readOligos()
 
