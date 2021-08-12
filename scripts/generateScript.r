@@ -1,4 +1,6 @@
 rm(list=ls())
+library(tidyverse)
+library(Biostrings)
 source("scripts/common.r")
 
 dms_folder = "/home/bahari/all_dms_data/Reads/"

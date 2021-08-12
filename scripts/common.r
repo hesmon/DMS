@@ -303,12 +303,12 @@ count_table <- function(bam_folder, Input_SortedBam, pathOut, st, end, ROI, path
   runLog$nrReadsInBamFile = length(tmpGal)
   
   # discards reads with indels but preserves softclipings
-  tmpGal = tmpGal[-grep("[ID]", tmpGal@cigar)] 
-  runLog$nrReadsAfterRemovingID = length(tmpGal)
+  # tmpGal = tmpGal[-grep("[ID]", tmpGal@cigar)] 
+  # runLog$nrReadsAfterRemovingID = length(tmpGal)
   
   # discards reads with N in their sequence
-  tmpGal = tmpGal[-grep("[N]", mcols(tmpGal)$seq)] 
-  runLog$nrReadsAfterRemoving = length(tmpGal)
+  # tmpGal = tmpGal[-grep("[N]", mcols(tmpGal)$seq)] 
+  # runLog$nrReadsAfterRemoving = length(tmpGal)
   
   genomicRange = getRangeOfInterest(st, end, includeFinalFlankingResid)
   

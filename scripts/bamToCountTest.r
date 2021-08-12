@@ -7,18 +7,19 @@ source("scripts/common.r")
 
 oligo_9NN = readOligos()
 
-bam_folder = "../glu_ext/"
-Input_SortedBam = "Set15_rep1_sorted.bam"
-ROI = c(212:227)
-st = 212
-end = 227
+
+bam_folder = "../outputs/bam_files/Glu/"
+Input_SortedBam = "SetR1_rep1_sorted.bam"
+ROI = c(140:149)
+st = 140
+end = 149
 
 
-pathOut = "../csv3/"
+pathOut = "../setR1_test/"
 pathToRef <- "../Reference/Ref_3CL.fasta"
-set = "Set15"
+set = "SetR1"
 replicate=1
-includeFinalFlankingResid = FALSE
+includeFinalFlankingResid = 0
 
 
 count_table(bam_folder, Input_SortedBam, pathOut, st, end, ROI, pathToRef,
