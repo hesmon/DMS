@@ -151,6 +151,8 @@ getSeqStatusForSets <- function(WT_Seq_org, SetRange_on_Ref, seqsFromOligos){
   
   seqsFromOligos <- cbind(seqsFromOligos,one_mismatch)
   
+  seqsFromOligos = seqsFromOligos[order(seqsFromOligos$DistFromWT, decreasing = FALSE), ]
+  
   WT_row_index <- which(seqsFromOligos$DistFromWT == 0)
   WT_native_row <- seqsFromOligos[WT_row_index, ]
   seqsFromOligos_whithoutWT <- seqsFromOligos[-WT_row_index, ]
@@ -162,7 +164,7 @@ getSeqStatusForSets <- function(WT_Seq_org, SetRange_on_Ref, seqsFromOligos){
 # count each sequence in the seqsTables created using getSeqStatusForSets function (for wild type and for the rest)
 
 doCountingForSet <- function(seqStatus_table, tmpGal){
-  
+  t0 = proc.time()
   seqs = as.character(mcols(tmpGal)$seq)
   
   WT_seq_inRange <- seqStatus_table$WT[1, "sequence"]
@@ -172,11 +174,17 @@ doCountingForSet <- function(seqStatus_table, tmpGal){
   
   seqs <- seqs[-indexes]
   
+ 
   Counts_excpt_WT <- c()
   for(i in 1:nrow(seqStatus_table$all_exceptWT)){
-    cnt <- length(grep(seqStatus_table$all_exceptWT[i, "sequence"], seqs))
+    indexes = grep(seqStatus_table$all_exceptWT[i, "sequence"], seqs)
+    cnt <- length(indexes)
     Counts_excpt_WT <- c(Counts_excpt_WT, cnt)
+    seqs <- seqs[-indexes]
+    print(paste(i, length(indexes), length(seqs)))
+    print((proc.time() - t0))
   }
+  proc.time() - t0
   seqs_count_Table <- cbind(seqStatus_table$all_exceptWT, count = Counts_excpt_WT)
   
   
