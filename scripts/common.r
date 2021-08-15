@@ -180,7 +180,8 @@ doCountingForSet <- function(seqStatus_table, tmpGal){
     indexes = grep(seqStatus_table$all_exceptWT[i, "sequence"], seqs)
     cnt <- length(indexes)
     Counts_excpt_WT <- c(Counts_excpt_WT, cnt)
-    seqs <- seqs[-indexes]
+    if(length(indexes)> 0)
+     seqs <- seqs[-indexes]
     print(paste(i, length(indexes), length(seqs)))
     print((proc.time() - t0))
   }
