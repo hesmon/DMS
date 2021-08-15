@@ -1,6 +1,5 @@
-
 rm(list = ls())
-
+source("scripts/common.r")
 library(stringr)
 library(Biostrings)
 oligo_9NN = readOligos()
@@ -26,9 +25,9 @@ tail(seqsFromOligos)
 seqStatus_table <- getSeqStatusForSets(WT_Seq_org, SetRange_on_Ref, seqsFromOligos)
 
 # define tmpGal
-#bamfile <- BamFile(paste0(bam_folder, Input_SortedBam))
-#print(bamfile)
-#tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq", "cigar"), simpleCigar = FALSE),
-#                          use.names=TRUE)
-load("../R/Set13_rep1_Excigar_GAlignment.RData")
+# bamfile <- BamFile(paste0(bam_folder, Input_SortedBam))
+# print(bamfile)
+# tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq", "cigar"), simpleCigar = FALSE),
+                         # use.names=TRUE)
+load("../tmpData/Set13_rep1_Excigar_GAlignment.RData")
 
