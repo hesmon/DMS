@@ -1,0 +1,34 @@
+
+rm(list = ls())
+
+library(stringr)
+library(Biostrings)
+oligo_9NN = readOligos()
+
+# for set13
+ROI = c(180:195)
+st = 180
+end = 195
+pathToRef <- "input_data/Ref_3CL.fasta"
+
+WT_Seq_org <- readDNAStringSet(pathToRef)
+includeFinalFlankingResid = 0
+
+
+SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
+
+seqsFromOligos  = generateOligSeqsForSet(ROI, SetRange_on_Ref, WT_Seq_org)
+
+
+head(seqsFromOligos)
+tail(seqsFromOligos)
+
+seqStatus_table <- getSeqStatusForSets(WT_Seq_org, SetRange_on_Ref, seqsFromOligos)
+
+# define tmpGal
+#bamfile <- BamFile(paste0(bam_folder, Input_SortedBam))
+#print(bamfile)
+#tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq", "cigar"), simpleCigar = FALSE),
+#                          use.names=TRUE)
+load("../R/Set13_rep1_Excigar_GAlignment.RData")
+
