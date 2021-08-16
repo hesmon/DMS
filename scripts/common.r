@@ -190,3 +190,24 @@ saveCountsInCsv <- function(set_counts, pathOut, set, replicate){
     write.csv(dat, file=residueFile, row.names = FALSE)
   }
 }
+
+count_table <- function(bam_folder, Input_SortedBam, pathOut, st, end, ROI, pathToRef, 
+                        set, replicate, includeFinalFlankingResid){
+  oligo_9NN = readOligos()
+  
+  WT_Seq_org <- readDNAStringSet(pathToRef)
+  
+  print(paste0(bam_folder, Input_SortedBam))
+  bamfile <- BamFile(paste0(bam_folder, Input_SortedBam))
+  print(bamfile)
+  tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq"), simpleCigar = FALSE),
+                            use.names=TRUE)
+  
+  SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
+  
+  sequenceTable <- getSequenceTableFromOligos(WT_Seq_org, SetRange_on_Ref, ROI)
+  
+  countDF <- doCountingForSet(sequenceTable, tmpGal)
+  
+  saveCountsInCsv(countDF, pathOut, set, replicate)
+}
