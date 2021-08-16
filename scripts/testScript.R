@@ -35,4 +35,4 @@ tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq", "cigar"), si
                          use.names=TRUE)
 
 load("../tmpData/Set13_rep1_Excigar_GAlignment.RData")
-tmpGal <- tmpGal[1:500000]
+
