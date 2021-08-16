@@ -38,8 +38,4 @@ tmpGal <- tmpGal[1:50000]
 
 countDF <- doCountingForSet(sequenceTable, tmpGal)
 
-nonWT = countDF[which(countDF$WT== FALSE) ,]
-sum(nonWT$count)
-wtCount = set_counts[which(countDF$WT), "count"][1]
-
-saveCountsInCsv(set_counts, pathOut, set, replicate)
+saveCountsInCsv(countDF, pathOut, set, replicate)

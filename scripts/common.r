@@ -166,23 +166,9 @@ doCountingForSet <- function(sequenceTable, tmpGal){
   
   sequenceTable$count = apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
   sequenceTable$corrected_count = sequenceTable$count / sequenceTable$correction_factor
-  print((proc.time() - t0))
   
-  sequenceTable
-}
-
-doCountingForSet <- function(sequenceTable, tmpGal){
-  t0 = proc.time()
-  seqs = as.character(mcols(tmpGal)$seq)
-  
-  reads_table = as.data.frame(table(seqs))
-  reads_table$seqs = as.character(reads_table$seqs)
-  nrow(reads_table)
-  
-  countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs)
-  
-  sequenceTable$count = apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
-  sequenceTable$corrected_count = sequenceTable$count / sequenceTable$correction_factor
+  sequenceTable = sequenceTable[, c("resid", "site_1", "site_2", "site_3", "count", "corrected_count",
+                                    "WT", "one_mismatch", "DistFromWT", "sequence")]
   print((proc.time() - t0))
   
   sequenceTable
@@ -191,8 +177,8 @@ doCountingForSet <- function(sequenceTable, tmpGal){
 saveCountsInCsv <- function(set_counts, pathOut, set, replicate){
   dir.create(pathOut, showWarnings = FALSE, recursive = TRUE)
   
-  count_table_excptWT <- set_counts %>% group_by(resid)
-  countGropus = group_split(count_table_excptWT)
+  count_table <- set_counts %>% group_by(resid)
+  countGropus = group_split(count_table)
   
   countGropus <- lapply(countGropus, function(i) i[order(i$count), ])
   
