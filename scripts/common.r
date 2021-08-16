@@ -211,8 +211,19 @@ doCountingForSet <- function(seqStatus_table, tmpGal){
 }
 
 
-saveCountsInCsv <- function(set_counts, WT_Seq_org, pathOut, set, replicate, ROI){
+saveCountsInCsv <- function(set_counts, pathOut, set, replicate){
   dir.create(pathOut, showWarnings = FALSE, recursive = TRUE)
   
+  count_table_excptWT <- set_counts %>% group_by(resid)
+  countGropus = group_split(count_table_excptWT)
   
+  countGropus <- lapply(countGropus, function(i) i[order(i$count), ])
+  
+  for(i  in 1:length(countGropus)) {
+    print(i)
+    dat = countGropus[[i]]
+    resid = countGropus[[i]][1,1]
+    residueFile = paste(pathOut, paste0(paste0("s", substring(set, 2)),"_residue", resid), "_rep", replicate-1, ".csv", sep =  '')
+    write.csv(dat, file=residueFile, row.names = FALSE)
+  }
 }
