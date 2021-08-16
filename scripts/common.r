@@ -125,8 +125,33 @@ generateOligSeqsForSet <- function(ROI, SetRange_on_Ref, WT_Seq_org){
   df
 }
 
+# create WT_table for the residues that do not have WT seq by oligo.
+create_WT_subSeqs_for_Rem_residues <- function(ROI, WT_Seq_org, SetRange_on_Ref){
+  
+  wtInRange <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
+  
+  res_generating_WT <- seqsFromOligos[which(seqsFromOligos$sequence == as.character(wtInRange)),"resid"]
+  idx <- which(ROI %in% res_generating_WT)
+  res_to_generate_WT <- ROI[-idx]
+  pos_on_ref_rem_residue <- posOnRef(res_to_generate_WT)
+  
+  pos_subseq <- data.frame(st = (pos_on_ref_rem_residue[,1])-3,
+                           nd = (pos_on_ref_rem_residue[,2])+3)
+  
+  sites <- substring(WT_Seq_org, pos_subseq$st, pos_subseq$nd)
+  
+  sites_splited <- t(data.frame(str_extract_all(sites, '.{1,3}')))
+  colnames(sites_splited) <- c("site_1", "site_2", "site_3")
+  rownames(sites_splited) <- c()
+  
+  WT_table_for_Rem_residues <- cbind(resid = res_to_generate_WT, 
+                                     sites_splited , sequence = as.character(wtInRange), 
+                                     DistFromWT= 0, one_mismatch = "FALSE")
+  WT_table_for_Rem_residues
+}
+
 # get the distance from WT and add the one_mismatch column
-getSeqStatusForSets <- function(WT_Seq_org, SetRange_on_Ref, seqsFromOligos){
+getSeqStatusForSets <- function(WT_Seq_org, SetRange_on_Ref, seqsFromOligos, ROI){
   #SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
   WT_in_Range <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
   
@@ -153,11 +178,17 @@ getSeqStatusForSets <- function(WT_Seq_org, SetRange_on_Ref, seqsFromOligos){
   
   seqsFromOligos = seqsFromOligos[order(seqsFromOligos$DistFromWT, decreasing = FALSE), ]
   
+  WT_rem <- create_WT_subSeqs_for_Rem_residues(ROI, WT_Seq_org, SetRange_on_Ref)
+  
   WT_row_index <- which(seqsFromOligos$DistFromWT == 0)
   WT_native_row <- seqsFromOligos[WT_row_index, ]
   seqsFromOligos_whithoutWT <- seqsFromOligos[-WT_row_index, ]
   
-  seqsTables <- list(all = seqsFromOligos, WT = WT_native_row, all_exceptWT = seqsFromOligos_whithoutWT)
+  WT_table <- rbind(WT_native_row, WT_rem)
+  WT_table <- WT_table[order(as.numeric(WT_table$resid)), ]
+  seqsTables <- list(all = seqsFromOligos, WT = WT_table,
+                     all_exceptWT = seqsFromOligos_whithoutWT)
+  
   seqsTables
 }
 
@@ -186,7 +217,14 @@ doCountingForSet <- function(seqStatus_table, tmpGal){
     print((proc.time() - t0))
   }
   proc.time() - t0
-  seqs_count_Table <- cbind(seqStatus_table$all_exceptWT, count = Counts_excpt_WT)
+  counts_excpt_WT_Table <- cbind(seqStatus_table$all_exceptWT, count = Counts_excpt_WT)
+  
+  set_counts <- list(counts_excpt_WT_Table, WT_seqs_count_Table)
+  
+}
+
+saveCountsInCsv <- function(set_counts, WT_Seq_org, pathOut, set, replicate, ROI){
+  dir.create(pathOut, showWarnings = FALSE, recursive = TRUE)
   
   
 }
