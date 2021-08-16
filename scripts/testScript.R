@@ -40,3 +40,7 @@ load("../tmpData/Set13_rep1_Excigar_GAlignment.RData")
 tmpGal <- tmpGal[1:50000]
 
 set_counts <- doCountingForSet(seqStatus_table, tmpGal)
+
+nonWT = set_counts[set_counts$DistFromWT != 0,]
+sum(nonWT$count)
+wtCount = set_counts[set_counts$DistFromWT == 0, "count"][1]
