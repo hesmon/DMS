@@ -3,6 +3,7 @@ source("scripts/common.r")
 library(stringr)
 library(Biostrings)
 library(GenomicAlignments)
+library(tidyverse)
 oligo_9NN = readOligos()
 
 # for set13
@@ -21,15 +22,7 @@ pathOut="../extdata/Output/testFunction/"
 
 SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
 
-
-seqsFromOligos  = generateOligSeqsForSet(ROI, SetRange_on_Ref, WT_Seq_org)
-
-
-head(seqsFromOligos)
-tail(seqsFromOligos)
-
-seqStatus_table <- getSeqStatusForSets(WT_Seq_org, SetRange_on_Ref, seqsFromOligos, ROI)
-
+sequenceTable <- getSequenceTableFromOligos(WT_Seq_org, SetRange_on_Ref, ROI)
 
 
 # define tmpGal
@@ -43,11 +36,10 @@ tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq", "cigar"), si
 load("../tmpData/Set13_rep1_Excigar_GAlignment.RData")
 tmpGal <- tmpGal[1:50000]
 
-set_counts <- doCountingForSet(seqStatus_table, tmpGal)
+countDF <- doCountingForSet(sequenceTable, tmpGal)
 
-nonWT = set_counts[set_counts$DistFromWT != 0,]
+nonWT = countDF[which(countDF$WT== FALSE) ,]
 sum(nonWT$count)
-wtCount = set_counts[set_counts$DistFromWT == 0, "count"][1]
-
+wtCount = set_counts[which(countDF$WT), "count"][1]
 
 saveCountsInCsv(set_counts, pathOut, set, replicate)

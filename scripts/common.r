@@ -59,10 +59,8 @@ generateSequenceForOligo <- function(pattern) {
              site_3 = paste0(seqs[, 7], seqs[, 8], seqs[, 9]))
 }
 
-
-
-create_seqs2 <- function(WT_Seq_org, SetRange_on_Ref, dat){
-
+create_seqs <- function(WT_Seq_org, SetRange_on_Ref, dat){
+  
   if(SetRange_on_Ref$includeFinalFlankingResid == FALSE){
     
     RefInRange_xp <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
@@ -80,7 +78,7 @@ create_seqs2 <- function(WT_Seq_org, SetRange_on_Ref, dat){
     sub_seq <- paste0(dat$site_1, dat$site_2, dat$site_3)
     #subseq_whole <- c(sub_seq, sub_seq_excp)
     pos_sub_seq_on_Ref <- data.frame(st = posOnRef(as.numeric(dat$resid))[,1]-3,
-                                        nd = posOnRef(as.numeric(dat$resid))[,2]+3)
+                                     nd = posOnRef(as.numeric(dat$resid))[,2]+3)
     pos_sub_seq_on_range <- abs(SetRange_on_Ref$startThr - pos_sub_seq_on_Ref$st)+1
     str_sub(RefInRange, pos_sub_seq_on_range, pos_sub_seq_on_range+8) <- sub_seq
     
@@ -97,14 +95,10 @@ create_seqs2 <- function(WT_Seq_org, SetRange_on_Ref, dat){
   }
   
   
-  # dists = sapply(RefInRange, function(x) {sum(strsplit(x, split='')[[1]] != WTInRange)})
-  # table(unname(dists))
+  dists = sapply(RefInRange, function(x) {sum(strsplit(x, split='')[[1]] != WTInRange)})
   
-  # list(seqs = RefInRange, dist = )
-  list(seqs = RefInRange)
+  list(seqs = RefInRange, DistFromWT = dists)
 }
-
-
 
 generateOligSeqsForSet <- function(ROI, SetRange_on_Ref, WT_Seq_org){ 
   df = NULL
@@ -116,100 +110,83 @@ generateOligSeqsForSet <- function(ROI, SetRange_on_Ref, WT_Seq_org){
       df = rbind(df, cbind(resid, oligoSeqs))
     }
   }
-  generatedSeqs = create_seqs2(WT_Seq_org, SetRange_on_Ref, df)
+  generatedSeqs = create_seqs(WT_Seq_org, SetRange_on_Ref, df)
   df$sequence = generatedSeqs$seqs
-  # df$adist = generatedSeqs$adist
-  
-  # df = df[order(df$adist), ]
-  head(df)
+  df$DistFromWT = generatedSeqs$DistFromWT
+  df = df[order(df$DistFromWT), ]
+  df$one_mismatch = ifelse(df$DistFromWT==1, TRUE, FALSE)
+  df$WT = ifelse(df$DistFromWT==0, TRUE, FALSE)
   df
 }
 
 # create WT_table for the residues that do not have WT seq by oligo.
-create_WT_subSeqs_for_Rem_residues <- function(ROI, WT_Seq_org, SetRange_on_Ref){
-  
+create_WT_subSeqs <- function(ROI, WT_Seq_org, SetRange_on_Ref){
   wtInRange <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
-  
-  res_generating_WT <- seqsFromOligos[which(seqsFromOligos$sequence == as.character(wtInRange)),"resid"]
-  idx <- which(ROI %in% res_generating_WT)
-  res_to_generate_WT <- ROI[-idx]
-  pos_on_ref_rem_residue <- posOnRef(res_to_generate_WT)
-  
-  pos_subseq <- data.frame(st = (pos_on_ref_rem_residue[,1])-3,
-                           nd = (pos_on_ref_rem_residue[,2])+3)
+  positions_on_ref <- posOnRef(ROI)
+  pos_subseq <- data.frame(st = (positions_on_ref[,1])-3,
+                           nd = (positions_on_ref[,2])+3)
   
   sites <- substring(WT_Seq_org, pos_subseq$st, pos_subseq$nd)
   
   sites_splited <- t(data.frame(str_extract_all(sites, '.{1,3}')))
-  colnames(sites_splited) <- c("site_1", "site_2", "site_3")
-  rownames(sites_splited) <- c()
+  df = data.frame(sites_splited)
+  colnames(df) <- c("site_1", "site_2", "site_3")
+  rownames(df) <- c()
   
-  WT_table_for_Rem_residues <- cbind(resid = res_to_generate_WT, 
-                                     sites_splited , sequence = as.character(wtInRange), 
-                                     DistFromWT= 0, one_mismatch = "FALSE")
-  WT_table_for_Rem_residues
+  cbind(resid = ROI, df, sequence = unname(as.character(wtInRange)),
+        DistFromWT= 0, one_mismatch = FALSE, WT=TRUE)
 }
 
 # get the distance from WT and add the one_mismatch column
-getSeqStatusForSets <- function(WT_Seq_org, SetRange_on_Ref, seqsFromOligos, ROI){
-  #SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
-  WT_in_Range <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
+getSequenceTableFromOligos <- function(WT_Seq_org, SetRange_on_Ref,  ROI){
+  seqsFromOligos  = generateOligSeqsForSet(ROI, SetRange_on_Ref, WT_Seq_org)
   
-  splited_WT_in_Range <- strsplit(as.character(WT_in_Range), split='')[[1]]
-  # seqsFromOligos  = generateOligSeqsForSet(ROI, SetRange_on_Ref, WT_Seq_org)
+  WT_table <- create_WT_subSeqs(ROI, WT_Seq_org, SetRange_on_Ref)
   
-  DistFromWT <- c()
-  for(i in 1: nrow(seqsFromOligos)){
-    x <- seqsFromOligos[i, "sequence"]
-    D <- length(which(splited_WT_in_Range != strsplit(x, split='')[[1]]))
-    DistFromWT <- c(DistFromWT, D)
-  }
-  seqsFromOligos <- cbind(seqsFromOligos,DistFromWT)
+  seqsTables = rbind(seqsFromOligos[seqsFromOligos$WT == 0,], WT_table)
   
-  one_mismatch <- c()
-  for (i in 1: nrow(seqsFromOligos)) {
-    if ((seqsFromOligos$DistFromWT[i] == 1)) {
-      one_mismatch_status <- "TRUE"
-    } else {one_mismatch_status <- "FALSE"}
-    one_mismatch <- c(one_mismatch, one_mismatch_status)
-  }
+  freqs = table(seqsTables$sequence)
+  seqsTables$correction_factor = freqs[seqsTables$sequence]
+  seqsTables$correction_factor[seqsTables$WT] = 1
   
-  seqsFromOligos <- cbind(seqsFromOligos,one_mismatch)
-  
-  seqsFromOligos = seqsFromOligos[order(seqsFromOligos$DistFromWT, decreasing = FALSE), ]
-  
-  WT_rem <- create_WT_subSeqs_for_Rem_residues(ROI, WT_Seq_org, SetRange_on_Ref)
-  
-  WT_row_index <- which(seqsFromOligos$DistFromWT == 0)
-  WT_native_row <- seqsFromOligos[WT_row_index, ]
-  seqsFromOligos_whithoutWT <- seqsFromOligos[-WT_row_index, ]
-  
-  WT_table <- rbind(WT_native_row, WT_rem)
-  WT_table <- WT_table[order(as.numeric(WT_table$resid)), ]
-  seqsTables <- list(all = seqsFromOligos, WT = WT_table,
-                     all_exceptWT = seqsFromOligos_whithoutWT)
+  seqsTables = seqsTables[order(seqsTables$DistFromWT, decreasing = FALSE),]
   
   seqsTables
 }
 
-
-doCountingForSet <- function(seqStatus_table, tmpGal){
+doCountingForSet <- function(sequenceTable, tmpGal){
   t0 = proc.time()
   seqs = as.character(mcols(tmpGal)$seq)
   
-  reads_table = as.data.frame(sort(table(seqs)))
+  reads_table = as.data.frame(table(seqs))
   reads_table$seqs = as.character(reads_table$seqs)
   nrow(reads_table)
   
-  AA = sapply(seqStatus_table$all$sequence, grepl, reads_table$seqs)
+  countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs)
+  
+  sequenceTable$count = apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
+  sequenceTable$corrected_count = sequenceTable$count / sequenceTable$correction_factor
   print((proc.time() - t0))
   
-  seqStatus_table$all$count = apply(AA, 2, function(x) { sum(reads_table$Freq[which(x)])})
-  print((proc.time() - t0))
-
-  seqStatus_table$all
+  sequenceTable
 }
 
+doCountingForSet <- function(sequenceTable, tmpGal){
+  t0 = proc.time()
+  seqs = as.character(mcols(tmpGal)$seq)
+  
+  reads_table = as.data.frame(table(seqs))
+  reads_table$seqs = as.character(reads_table$seqs)
+  nrow(reads_table)
+  
+  countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs)
+  
+  sequenceTable$count = apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
+  sequenceTable$corrected_count = sequenceTable$count / sequenceTable$correction_factor
+  print((proc.time() - t0))
+  
+  sequenceTable
+}
 
 saveCountsInCsv <- function(set_counts, pathOut, set, replicate){
   dir.create(pathOut, showWarnings = FALSE, recursive = TRUE)
