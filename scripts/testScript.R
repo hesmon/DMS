@@ -17,13 +17,14 @@ includeFinalFlankingResid = 0
 
 SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
 
+
 seqsFromOligos  = generateOligSeqsForSet(ROI, SetRange_on_Ref, WT_Seq_org)
 
 
 head(seqsFromOligos)
 tail(seqsFromOligos)
 
-seqStatus_table <- getSeqStatusForSets(WT_Seq_org, SetRange_on_Ref, seqsFromOligos)
+seqStatus_table <- getSeqStatusForSets(WT_Seq_org, SetRange_on_Ref, seqsFromOligos, ROI)
 
 # define tmpGal
 bam_folder = "../outputs/bam_files/Gal/"
@@ -34,4 +35,4 @@ tmpGal <- readGAlignments(bamfile, param=ScanBamParam(what=c("seq", "cigar"), si
                          use.names=TRUE)
 
 load("../tmpData/Set13_rep1_Excigar_GAlignment.RData")
-
+tmpGal <- tmpGal[1:500000]
