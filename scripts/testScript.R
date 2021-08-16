@@ -14,6 +14,10 @@ pathToRef <- "input_data/Ref_3CL.fasta"
 WT_Seq_org <- readDNAStringSet(pathToRef)
 includeFinalFlankingResid = 0
 
+set = "Set13"
+replicate=1
+
+pathOut="../extdata/Output/testFunction/"
 
 SetRange_on_Ref <- getRangeOfInterest(st, end, includeFinalFlankingResid)
 
@@ -44,3 +48,6 @@ set_counts <- doCountingForSet(seqStatus_table, tmpGal)
 nonWT = set_counts[set_counts$DistFromWT != 0,]
 sum(nonWT$count)
 wtCount = set_counts[set_counts$DistFromWT == 0, "count"][1]
+
+
+saveCountsInCsv(set_counts, pathOut, set, replicate)
