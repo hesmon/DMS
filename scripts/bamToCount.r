@@ -21,13 +21,12 @@ if(length(args)==0){
   }
 }
 
-InWindows = FALSE
 
-if(InWindows == FALSE) {
-  library(doMC)
-  registerDoMC(6)
-  print(paste("#cores", getDoParWorkers()))
-}
+# if(InWindows == FALSE) {
+#   library(doParallel)
+#   registerDoParallel(cores=6)
+#   print(paste("#cores", getDoParWorkers()))
+# }
 print(ls())
 print(Sys.time())
 print(i)

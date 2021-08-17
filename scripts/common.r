@@ -165,28 +165,18 @@ doCountingForSet <- function(sequenceTable, tmpGal){
   tmp = 1:nrow(reads_table)
   chunks = split(tmp, ceiling(seq_along(tmp)/1000))
   
-  if(InWindows) {
-    t0 = proc.time()
-    chunkCounts <- foreach(i = 1:length(chunks), .combine = 'rbind') %do% {
-      print(paste("chunk", i, "out of", length(chunks)))
-      countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs[chunks[[i]]])
-      apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
+  t0 = proc.time()
+  chunkCounts <- foreach(i = 1:length(chunks), .combine = 'rbind') %do% {
+    if(i %% 10 == 0){
+      t = proc.time()- t0
+      print(paste("chunk", i, "out of", length(chunks), "time", t[3] ))
     }
-    sequenceTable$count = apply(chunkCounts, 2, sum)
-    print("Total time:")
-    print(proc.time()- t0)
-  } else {
-    t0 = proc.time()
-    chunkCounts <- foreach(i = 1:length(chunks), .combine = 'rbind') %dopar% {
-      print(paste("chunk", i, "out of", length(chunks)))
-      countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs[chunks[[i]]])
-      apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
-    }
-    sequenceTable$count = apply(chunkCounts, 2, sum)
-    print("Total time:")
-    proc.time()- t0
+    countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs[chunks[[i]]])
+    apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
   }
-
+  sequenceTable$count = apply(chunkCounts, 2, sum)
+  print("Total time:")
+  print(proc.time()- t0)
   # countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs)
   # sequenceTable$count = apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
   

@@ -3,8 +3,8 @@ rm(list=ls())
 library(GenomicAlignments)
 library(tidyverse)
 library(data.table)
-# source("scripts/common.r")
-source("common.r")
+source("scripts/common.r")
+# source("common.r")
 
 oligo_9NN = readOligos()
 
@@ -22,21 +22,6 @@ set = "Set1"
 replicate=1
 includeFinalFlankingResid = 0
 
-InWindows = TRUE
-
-count_table(bam_folder, Input_SortedBam, pathOut, st, end, ROI, pathToRef,
-            set, replicate, includeFinalFlankingResid)
-
-
-InWindows = FALSE
-
-if(InWindows == FALSE) {
-  library(doMC)
-  registerDoMC(6)
-  print(paste("#cores", getDoParWorkers()))
-}
-
-pathToRef = "/home/bahari/SarsCov/Ref_3CL.fasta"
 count_table(bam_folder, Input_SortedBam, pathOut, st, end, ROI, pathToRef,
             set, replicate, includeFinalFlankingResid)
 
