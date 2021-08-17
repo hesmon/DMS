@@ -5,9 +5,9 @@ source("scripts/common.r")
 
 dms_folder = "/home/bahari/all_dms_data/Reads/"
 folder_names = c("Set1", "Set10", "Set10R1", "Set10R2", "Set11", "Set12", "Set13", "Set13R1", "Set13R2",
-         "Set14", "Set14R", "Set15", "Set16", "Set16R", "Set17", "Set18", "Set19", "Set2",   
-         "Set20", "Set21", "Set3", "Set4", "Set5", "Set6", "Set7", "Set8", "Set8R", "Set9",
-         "Set9R1", "Set9R2", "SetR1")
+                 "Set14", "Set14R", "Set15", "Set16", "Set16R", "Set17", "Set18", "Set19", "Set2",   
+                 "Set20", "Set21", "Set3", "Set4", "Set5", "Set6", "Set7", "Set8", "Set8R", "Set9",
+                 "Set9R1", "Set9R2", "SetR1")
 
 sets_to_folders = folder_names
 names(sets_to_folders) = folder_names
@@ -26,9 +26,9 @@ tmp = ifelse(data$Sites=="", paste0(data$Start.range, ":", data$End.range-1), da
 ROI = paste0("c(", tmp, ")")
 
 df = data.frame(rbind(cbind(data$Set, data$Replicate, data$Glu, "Glu", ROI, data$Start.range,  data$End.range-1),
-      cbind(data$Set, data$Replicate, data$Gal, "Gal", ROI, data$Start.range,  data$End.range-1),
-      cbind(data$Set, data$Replicate, data$Gc, "Gc", ROI, data$Start.range,  data$End.range-1),
-      cbind(data$Set, data$Replicate, data$Grl, "Grl", ROI, data$Start.range,  data$End.range-1)))
+                      cbind(data$Set, data$Replicate, data$Gal, "Gal", ROI, data$Start.range,  data$End.range-1),
+                      cbind(data$Set, data$Replicate, data$Gc, "Gc", ROI, data$Start.range,  data$End.range-1),
+                      cbind(data$Set, data$Replicate, data$Grl, "Grl", ROI, data$Start.range,  data$End.range-1)))
 
 colnames(df) = c("Set", "Rep", "ID", "condition", "ROI", "st", "end")
 
@@ -37,7 +37,7 @@ df$Set = paste0("Set",df$Set)
 oligos_NN = readOligos()
 
 oligos_vec = strsplit(toupper(substr(oligos_NN[as.numeric(df$end)], 7, 9)), '')
- 
+
 
 tmp = !unlist(lapply(oligos_vec, function(x){ all(x %in% c("A", "C", "G", "T"))}))
 df$includeFinalFlankingResid = ifelse(tmp, 1, 0)
@@ -77,8 +77,16 @@ for(set in sets) {
     bam_file_cigar = paste0(bam_folder, set, "_rep", df$Rep[i], "_cigar.bam")
     bam_sorted = paste0(bam_folder, set, "_rep", df$Rep[i], "_sorted.bam")
     bam_index = paste0(bam_folder, set, "_rep", df$Rep[i], "_sorted.bam.bai")
-
+    
     fastq_parts = paste0(dms_folder, folder, "/", sort(files[grep(df$ID[i], files)]))
+    
+    csv_folder <-  paste0("/home/bahari/all_dms_data/outputs/csv_files/", df$condition[i], "/")
+    # cat("cd ", csv_folder,"\n")
+    csv_file <- paste0(csv_folder, paste0("s", substring(set, 2)),
+                       "_residue", df$end[i], "_rep", df$Rep[i], ".csv")
+    
+    cat("if [ ! -f \"", csv_file, "\" ]; then \n", sep='')
+    
     
     # cat("if [ ! -f \"", bam_index, "\" ]; then \n", sep='')
     # # cat("cat ", fastq_parts, " > " , final_fastq, "\n \n")
@@ -94,13 +102,19 @@ for(set in sets) {
     bam_sorted_fname = paste0("\"", set, "_rep", df$Rep[i], "_sorted.bam\"")
     pathOut = paste0("\"../outputs/csv_files/", df$condition[i], "/\"")
     bam_folder_str = paste0("\"", bam_folder, "\"")
+    
+    cat("echo ", csv_file, "\n")
+    
     cat("R CMD BATCH --no-save --no-restore \'--args ", " bam_folder=", bam_folder_str,
         " Input_SortedBam=", bam_sorted_fname, " pathOut=", pathOut, " st=", df$st[i], 
         " end=", df$end[i], " ROI=", df$ROI[i], " pathToRef=\"/home/bahari/SarsCov/Ref_3CL.fasta\"",
         " set=\"", df$Set[i], "\" replicate=", df$Rep[i],
         " includeFinalFlankingResid=", df$includeFinalFlankingResid[i] ,  " \'", 
         " bamToCount.r \n", sep='')
+    
     cat("\n")
+    
+    cat("fi\n")
   }
   # cat("cd .. \n")
   cat("echo ----------------------- \n \n")
