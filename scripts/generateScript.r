@@ -25,12 +25,18 @@ data = read.csv("input_data/sample_spreadsheet_final.csv", skip = 11)
 tmp = ifelse(data$Sites=="", paste0(data$Start.range, ":", data$End.range-1), data$Sites)
 ROI = paste0("c(", tmp, ")")
 
-df = data.frame(rbind(cbind(data$Set, data$Replicate, data$Glu, "Glu", ROI, data$Start.range,  data$End.range-1),
-                      cbind(data$Set, data$Replicate, data$Gal, "Gal", ROI, data$Start.range,  data$End.range-1),
-                      cbind(data$Set, data$Replicate, data$Gc, "Gc", ROI, data$Start.range,  data$End.range-1),
-                      cbind(data$Set, data$Replicate, data$Grl, "Grl", ROI, data$Start.range,  data$End.range-1)))
+data$endResid = data$End.range-1
+idx = which(data$Sites != '')
+data$endResid[idx] = unlist(lapply(strsplit(data$Sites[idx], ","), max))
 
-colnames(df) = c("Set", "Rep", "ID", "condition", "ROI", "st", "end")
+
+
+df = data.frame(rbind(cbind(data$Set, data$Replicate, data$Glu, "Glu", ROI, data$Start.range,  data$End.range-1, data$endResid),
+                      cbind(data$Set, data$Replicate, data$Gal, "Gal", ROI, data$Start.range,  data$End.range-1, data$endResid),
+                      cbind(data$Set, data$Replicate, data$Gc, "Gc", ROI, data$Start.range,  data$End.range-1, data$endResid),
+                      cbind(data$Set, data$Replicate, data$Grl, "Grl", ROI, data$Start.range,  data$End.range-1, data$endResid)))
+
+colnames(df) = c("Set", "Rep", "ID", "condition", "ROI", "st", "end", "endResidue")
 
 df$Set = paste0("Set",df$Set)
 
@@ -83,7 +89,7 @@ for(set in sets) {
     csv_folder <-  paste0("/home/bahari/all_dms_data/outputs/csv_files/", df$condition[i], "/")
     # cat("cd ", csv_folder,"\n")
     csv_file <- paste0(csv_folder, paste0("s", substring(set, 2)),
-                       "_residue", df$end[i], "_rep", df$Rep[i], ".csv")
+                       "_residue", df$endResidue[i], "_rep", as.numeric(df$Rep[i])-1, ".csv")
     
     cat("if [ ! -f \"", csv_file, "\" ]; then \n", sep='')
     

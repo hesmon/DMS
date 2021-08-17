@@ -61,10 +61,10 @@ generateSequenceForOligo <- function(pattern) {
 
 create_seqs <- function(WT_Seq_org, SetRange_on_Ref, dat){
   
+  RefInRange_xp <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
+  WTInRange = strsplit(as.character(RefInRange_xp), split='')[[1]]
+  
   if(SetRange_on_Ref$includeFinalFlankingResid == FALSE){
-    
-    RefInRange_xp <- subseq(WT_Seq_org, SetRange_on_Ref$startThr, SetRange_on_Ref$endTrim)
-    WTInRange = strsplit(as.character(RefInRange_xp), split='')[[1]]
     index <- which(dat$resid == max(as.numeric(dat$resid)))
     dat_excp <- dat[index,]
     sub_seq_excp <- paste0(dat_excp$site_1, dat_excp$site_2)
