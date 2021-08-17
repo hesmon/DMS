@@ -1,6 +1,6 @@
 rm(list=ls())
 # library(Rsamtools)
-printlibrary(GenomicAlignments)
+library(GenomicAlignments)
 library(tidyverse)
 library(data.table)
 
