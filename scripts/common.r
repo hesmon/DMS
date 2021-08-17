@@ -162,6 +162,9 @@ doCountingForSet <- function(sequenceTable, tmpGal){
   reads_table$seqs = as.character(reads_table$seqs)
   nrow(reads_table)
   
+  tmp = 1:nrow(reads_table)
+  chunks = split(tmp, ceiling(seq_along(tmp)/1000))
+  
   if(InWindows) {
     t0 = proc.time()
     chunkCounts <- foreach(i = 1:length(chunks), .combine = 'rbind') %do% {

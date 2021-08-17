@@ -3,6 +3,7 @@ rm(list=ls())
 library(GenomicAlignments)
 library(tidyverse)
 library(data.table)
+library(foreach)
 
 source("common.r")
 
@@ -21,6 +22,12 @@ if(length(args)==0){
 }
 
 InWindows = FALSE
+
+if(InWindows == FALSE) {
+  library(doMC)
+  registerDoMC(6)
+  print(paste("#cores", getDoParWorkers()))
+}
 print(ls())
 print(Sys.time())
 print(i)
