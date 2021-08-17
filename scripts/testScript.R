@@ -6,6 +6,8 @@ library(GenomicAlignments)
 library(tidyverse)
 oligo_9NN = readOligos()
 
+InWindows = TRUE
+
 # for set13
 ROI = c(180:195)
 st = 180

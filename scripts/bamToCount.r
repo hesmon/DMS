@@ -1,6 +1,6 @@
 rm(list=ls())
 # library(Rsamtools)
-library(GenomicAlignments)
+printlibrary(GenomicAlignments)
 library(tidyverse)
 library(data.table)
 
@@ -19,7 +19,10 @@ if(length(args)==0){
     eval(parse(text=args[[i]]))
   }
 }
+
+InWindows = FALSE
 print(ls())
+print(Sys.time())
 print(i)
 print(bam_folder)
 print(Input_SortedBam)
