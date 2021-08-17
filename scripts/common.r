@@ -171,8 +171,12 @@ doCountingForSet <- function(sequenceTable, tmpGal){
       t = proc.time()- t0
       print(paste("chunk", i, "out of", length(chunks), "time", t[3] ))
     }
-    countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs[chunks[[i]]])
-    apply(countMat, 2, function(x) { sum(reads_table$Freq[which(x)])})
+    chunkIndex = chunks[[i]]
+    countMat = sapply(sequenceTable$sequence, grepl, reads_table$seqs[chunkIndex])
+    freqs = reads_table$Freq[chunkIndex]
+    apply(countMat, 2, function(x) { 
+      sum(freqs[which(x)])
+    })
   }
   sequenceTable$count = apply(chunkCounts, 2, sum)
   print("Total time:")
