@@ -60,7 +60,7 @@ sink("../outputs/dms_align.sh")
 # wiritn the rhead
 cat("#!/usr/bin/env bash\n \n")
 
-# samfixcigar = "java -jar /home/bahari/tools/jvarkit/dist/samfixcigar.jar"
+samfixcigar = "java -jar /home/bahari/tools/jvarkit/dist/samfixcigar.jar"
 # cat("bwa index /home/bahari/SarsCov/Ref_3CL.fasta\n")
 
 sets = sort(unique(df$Set))
@@ -73,56 +73,55 @@ for(set in sets) {
   files = files_in_sets[[folder]]
   for(i in idx) {
     base_folder = paste0("../outputs/fastq_files/", df$condition[i], "/")
+    bam_folder_init = paste0("../outputs/bam_files_init/", df$condition[i], "/")
     bam_folder = paste0("../outputs/bam_files/", df$condition[i], "/")
-    cat("mkdir -p ", base_folder, "\n", sep='')
-    cat("mkdir -p ", bam_folder, "\n", sep='')
+    sam_folder = paste0("../outputs/sam_files/", df$condition[i], "/")
+    # cat("mkdir -p ", base_folder, "\n", sep='')
+    # cat("mkdir -p ", bam_folder_init, "\n", sep='')
+    # cat("mkdir -p ", bam_folder, "\n", sep='')
     final_fastq = paste0(base_folder, set, "_rep", df$Rep[i], ".fastq")
     
-    sam_file = paste0(bam_folder, set, "_rep", df$Rep[i], ".sam")
-    bam_file = paste0(bam_folder, set, "_rep", df$Rep[i], ".bam")
-    bam_file_cigar = paste0(bam_folder, set, "_rep", df$Rep[i], "_cigar.bam")
+    sam_file = paste0(sam_folder, set, "_rep", df$Rep[i], ".sam")
+    bam_file = paste0(bam_folder_init, set, "_rep", df$Rep[i], ".bam")
+    bam_file_cigar = paste0(bam_folder_init, set, "_rep", df$Rep[i], "_cigar.bam")
     bam_sorted = paste0(bam_folder, set, "_rep", df$Rep[i], "_sorted.bam")
     bam_index = paste0(bam_folder, set, "_rep", df$Rep[i], "_sorted.bam.bai")
     
     fastq_parts = paste0(dms_folder, folder, "/", sort(files[grep(df$ID[i], files)]))
     
     csv_folder <-  paste0("/home/bahari/all_dms_data/outputs/csv_files/", df$condition[i], "/")
-    # cat("cd ", csv_folder,"\n")
     csv_file <- paste0(csv_folder, paste0("s", substring(set, 2)),
                        "_residue", df$endResidue[i], "_rep", as.numeric(df$Rep[i])-1, ".csv")
     
-    cat("if [ ! -f \"", csv_file, "\" ]; then \n", sep='')
-    
-    
-    # cat("if [ ! -f \"", bam_index, "\" ]; then \n", sep='')
+    cat("if [ ! -f \"", bam_index, "\" ]; then \n", sep='')
     # # cat("cat ", fastq_parts, " > " , final_fastq, "\n \n")
     # cat("echo alignment:", final_fastq, "\n")
     # # cat("bwa mem /home/bahari/SarsCov/Ref_3CL.fasta ", final_fastq, "> ", sam_file, "\n")
     # # cat("samtools view -S -b -q 20  ", sam_file, " > ", bam_file, "\n")
-    # 
-    # ref = "/home/bahari/SarsCov/Ref_3CL.fasta"
-    # cat(samfixcigar," -R ",  ref, " ", bam_file," -o ",bam_file_cigar, "\n")
-    # cat("samtools sort ", bam_file_cigar, "> ", bam_sorted, "\n")
-    # cat("samtools index ", bam_sorted, "\n")
-    # cat("fi\n")
+    cat("samtools view -S -b  ", sam_file, " > ", bam_file, "\n")
+
+    ref = "/home/bahari/SarsCov/Ref_3CL.fasta"
+    cat(samfixcigar," -R ",  ref, " ", bam_file," -o ",bam_file_cigar, "\n")
+    cat("samtools sort ", bam_file_cigar, "> ", bam_sorted, "\n")
+    cat("samtools index ", bam_sorted, "\n")
+    cat("fi\n")
     bam_sorted_fname = paste0("\"", set, "_rep", df$Rep[i], "_sorted.bam\"")
     pathOut = paste0("\"../outputs/csv_files/", df$condition[i], "/\"")
     bam_folder_str = paste0("\"", bam_folder, "\"")
     
-    cat("echo ", csv_file, "\n")
     
+    cat("if [ ! -f \"", csv_file, "\" ]; then \n", sep='')
+    cat("echo ", csv_file, "\n")
+
     cat("R CMD BATCH --no-save --no-restore \'--args ", " bam_folder=", bam_folder_str,
-        " Input_SortedBam=", bam_sorted_fname, " pathOut=", pathOut, " st=", df$st[i], 
+        " Input_SortedBam=", bam_sorted_fname, " pathOut=", pathOut, " st=", df$st[i],
         " end=", df$end[i], " ROI=", df$ROI[i], " pathToRef=\"/home/bahari/SarsCov/Ref_3CL.fasta\"",
         " set=\"", df$Set[i], "\" replicate=", df$Rep[i],
-        " includeFinalFlankingResid=", df$includeFinalFlankingResid[i] ,  " \'", 
+        " includeFinalFlankingResid=", df$includeFinalFlankingResid[i] ,  " \'",
         " bamToCount.r \n", sep='')
-    
-    cat("\n")
-    
+
     cat("fi\n")
   }
-  # cat("cd .. \n")
   cat("echo ----------------------- \n \n")
 }
 
