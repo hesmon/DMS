@@ -66,7 +66,7 @@ if(reverse) {
 sink(fname)
 
 # wiritn the rhead
-cat("#!/usr/bin/env bash\n \n")
+cat("#!/usr/bin/env bash\n \n") 
 
 samfixcigar = "java -jar /home/bahari/tools/jvarkit/dist/samfixcigar.jar"
 # cat("bwa index /home/bahari/SarsCov/Ref_3CL.fasta\n")
