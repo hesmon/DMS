@@ -55,7 +55,15 @@ df$includeFinalFlankingResid = ifelse(tmp, 1, 0)
 # df = df[which(!(df$condition %in% c("Gal", "Glu"))), ]
 
 dir.create("../outputs/", recursive=TRUE, showWarnings = FALSE)
-sink("../outputs/dms_align.sh")
+reverse = TRUE
+
+if(reverse) {
+  fname = "../outputs/dms_align_rev.sh"
+} else {
+  fname = "../outputs/dms_align.sh"
+}
+
+sink(fname)
 
 # wiritn the rhead
 cat("#!/usr/bin/env bash\n \n")
@@ -64,6 +72,8 @@ samfixcigar = "java -jar /home/bahari/tools/jvarkit/dist/samfixcigar.jar"
 # cat("bwa index /home/bahari/SarsCov/Ref_3CL.fasta\n")
 
 sets = sort(unique(df$Set))
+if(reverse)
+  sets = rev(sets)
 for(set in sets) {
   folder = sets_to_folders[set]
   # cat("cd ", folder, " \n", sep='')
