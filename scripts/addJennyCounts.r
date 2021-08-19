@@ -43,6 +43,5 @@ for(condition in c("Gal", "Glu", "Gc", "Grl" )) {
 
 df = df[order(df$`Spearman correlation`),]
 rownames(df) = NULL
-df = df[c(1, 4, 3, 2)]
 
 write.csv(df, file="../outputs/final_csv_files/comparison_with_jenny.csv")
