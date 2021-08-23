@@ -1,6 +1,6 @@
 rm(list=ls())
 
-base_folder = "../outputs/csv_files/"
+base_folder = "csv_files/"
 output_base_folder = "../outputs/final_csv_files/"
 
 df = data.frame()
