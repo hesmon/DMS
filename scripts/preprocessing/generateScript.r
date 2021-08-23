@@ -1,7 +1,7 @@
 rm(list=ls())
 library(tidyverse)
 library(Biostrings)
-source("scripts/common.r")
+source("scripts/preprocessing/common.r")
 
 dms_folder = "/home/bahari/all_dms_data/Reads/"
 folder_names = c("Set1", "Set10", "Set10R1", "Set10R2", "Set11", "Set12", "Set13", "Set13R1", "Set13R2",
@@ -58,9 +58,9 @@ dir.create("../outputs/", recursive=TRUE, showWarnings = FALSE)
 reverse = TRUE
 
 if(reverse) {
-  fname = "../outputs/dms_align_rev.sh"
+  fname = "outputs/dms_align_rev.sh"
 } else {
-  fname = "../outputs/dms_align.sh"
+  fname = "outputs/dms_align.sh"
 }
 
 sink(fname)

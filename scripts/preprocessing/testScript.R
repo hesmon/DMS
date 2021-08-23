@@ -1,5 +1,5 @@
 rm(list = ls())
-source("scripts/common.r")
+source("scripts/preprocessing/common.r")
 library(stringr)
 library(Biostrings)
 library(GenomicAlignments)

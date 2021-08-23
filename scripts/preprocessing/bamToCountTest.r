@@ -3,7 +3,7 @@ rm(list=ls())
 library(GenomicAlignments)
 library(tidyverse)
 library(data.table)
-source("scripts/common.r")
+source("scripts/preprocessing/common.r")
 # source("common.r")
 
 oligo_9NN = readOligos()
