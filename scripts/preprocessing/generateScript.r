@@ -54,8 +54,8 @@ df$includeFinalFlankingResid = ifelse(tmp, 1, 0)
 ###############################################################
 # df = df[which(!(df$condition %in% c("Gal", "Glu"))), ]
 
-dir.create("../outputs/", recursive=TRUE, showWarnings = FALSE)
-reverse = TRUE
+dir.create("outputs/", recursive=TRUE, showWarnings = FALSE)
+reverse = FALSE
 
 if(reverse) {
   fname = "outputs/dms_align_rev.sh"
