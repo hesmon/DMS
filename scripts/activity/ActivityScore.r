@@ -1,0 +1,285 @@
+rm(list=ls())
+
+getMutations <- function() {
+  c("*", "A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R",
+    "S", "T", "V", "W", "Y")
+}
+
+makeMutNames <- function() {
+  muts = getMutations()
+  mutNames  = c()
+  residues = 1:306
+  for(resid in residues) {
+    set = setForResidue[resid]
+    refSite1 = refAtPos(resid-1, globalRef)
+    refSite3 = refAtPos(resid+1, globalRef)
+    
+    mutNames = c(mutNames, paste0(set, "_residue", resid, "_", refSite1, muts, refSite3))
+  }
+  mutNames
+}
+
+
+ref_genetic <- function() { 
+  seq_3CL = paste0("TACAAAATGTACAAAATGAGTGGTTTTAGAAAAATGGCATTCCCATCTGGTAAAGTTGAGGGTTGTATGGTACAAGTAACTTGTGGTACAACTACACTTAACGGTCTTTGGCTTGATGACGTAGTTTACTGTCCAAGACATGTGATCTGCACCTCTGAAGACATGCTTAACCCTAATTATGAAGATTTACTCATTCGTAAGTCTAATCATAATTTCTTGGTACAGGCTGGTAATGTTCAACTCAGGGTTATTGGACATTCTATGCAAAATTGTGTACTTAAGCTTAAGGTTGATACAGCCAATCCTAAGACACCTAAGTATAAGTTTGTTCGCATTCAACCAGGACAGACTTTTTCAGTGTTAGCTTGTTACAATGGTTCACCATCTGGTGTTTACCAATGTGCTATGAGGCCCAATTTCACTATTAAGGGTTCATTCCTTAATGGTTCATGTGGTAGTGTTGGTTTTAACATAGATTATGACTGTGTCTCTTTTTGTTACATGCACCATATGGAATTACCAACTGGAGTTCATGCTGGCACAGACTTAGAAGGTAACTTTTATGGACCTTTTGTTGACAGGCAAACAGCACAAGCAGCTGGTACGGACACAACTATTACAGTTAATGTTTTAGCTTGGTTGTACGCTGCTGTTATAAATGGAGACAGGTGGTTTCTCAATCGATTTACCACAACTCTTAATGACTTTAACCTTGTGGCTATGAAGTACAATTATGAACCTCTAACACAAGACCATGTTGACATACTAGGACCTCTTTCTGCTCAAACTGGAATTGCCGTTTTAGATATGTGTGCTTCATTAAAAGAATTACTGCAAAATGGTATGAATGGACGTACCATATTGGGTAGTGCTTTATTAGAAGATGAATTTACACCTTTTGATGTTGTTAGACAATGCTCAGGTGTTACTTTCCAATAA")
+  seq_3CL
+}
+
+find_ref <- function(){
+  dna = DNAStringSet(seq_3CL)
+  ref= translate(dna, genetic.code=GENETIC_CODE, no.init.codon=TRUE)
+  ref <- as.character(ref)
+  ref <- substring(ref,6)
+  return(ref)
+}
+
+
+filterRepeatedResidueFiles <- function(fnames) 
+{
+  res  = data.frame(t(sapply(fnames, parseFileName)))
+  res$rep = as.numeric(res$rep)
+  res$resid = as.numeric(res$resid)
+  res$set = as.character(res$set)
+  
+  indexes = grep("R", res$set)
+  setRs = res[indexes,]
+  nonSetRs = res[-indexes,]
+  
+  rm_indexes = c()
+  org_indexes = c()
+  for(i in 1:nrow(setRs)) {
+    resid = setRs[i, ]$resid
+    rep = setRs[i, ]$rep
+    set = setRs[i, ]$set
+    
+    index = which(nonSetRs$resid == resid & nonSetRs$rep == rep & nonSetRs$set != set)
+    if(length(index) > 0) {
+      rm_indexes = c(rm_indexes, index)
+      org_indexes = c(org_indexes, i)
+    }
+  }
+  
+  # cbind(rownames(setRs[org_indexes,]), rownames(nonSetRs[rm_indexes,]))
+  
+  nonSetRs = nonSetRs[-rm_indexes,]
+  
+  new_fnames = rownames(rbind(setRs, nonSetRs))
+  new_fnames = new_fnames[-grep("setR1_residue140", new_fnames)]
+  new_fnames[-grep("setR1_residue141", new_fnames)]
+}
+
+
+makeFolderName <- function(base_folder, condition) {
+  paste0(base_folder, condition, "/")
+}
+
+parseFileName <- function(fname) {
+  tmp = strsplit(fname, "\\.")[[1]][1]
+  splits = strsplit(tmp, "_")[[1]]
+  
+  list(set = splits[1], resid=substring(splits[2], 8), rep = substring(splits[3], 4))
+}
+
+readResidueFile <- function(folder, fname, condition, threshold, synCoding, remove_one_mismatch)
+{
+  print(fname)
+  full_fname = paste0(folder, fname)
+  dat = read.csv(full_fname)
+  
+  if(remove_one_mismatch) {
+    dat = dat[which(!dat$one_mismatch),] 
+  }
+  dat = dat[which(dat$count >= threshold), , drop=FALSE ]
+  
+  if(nrow(dat) <= 1) {
+    return(NULL)
+  }
+  
+  genetic_codes = apply(dat[, c("site_1", "site_2", "site_3")], 1, paste0, collapse='')
+  names(genetic_codes) = NULL
+  
+  dna = DNAStringSet(genetic_codes)
+  trans= as.character(translate(dna, genetic.code=GENETIC_CODE, no.init.codon=TRUE))
+  
+  parsedFname = parseFileName(fname)
+  prefix = paste0(parsedFname$set, "_residue", parsedFname$resid, "_rep", parsedFname$rep)
+  
+  dat$id =   paste0(prefix, genetic_codes)
+  dat$trans = trans
+  
+  mut = sapply(dat$trans, function(x){substr(x, 2, 2)})
+  dat$mut = mut
+  
+  dat$set = parsedFname$set
+  dat$condition = condition
+  dat$rep = parsedFname$rep
+  dat$gen_code = genetic_codes
+  
+  colnames(dat)[which(colnames(dat) == "resid")]  = "residue"
+  
+  native_wt_index = nrow(dat)
+  
+  normFactor = dat[native_wt_index, "count"]
+  
+  dat = dat[-native_wt_index,, drop=FALSE ]
+  dat$count = dat$count/normFactor
+  dat$corrected_count = dat$corrected_count/normFactor
+  
+  
+  if(synCoding == FALSE) {
+    dat = dat[, -which(colnames(dat) %in% c("id", "gen_code", "DistFromWT")) ]
+    dat = as.data.frame(distinct(dat %>% group_by(mut) %>% 
+                                   mutate(count=sum(count), corrected_count=sum(corrected_count))))
+    dat$id = paste0(dat$set, "_residue", dat$residue, "_rep", dat$rep, "_", dat$trans)
+  }
+  
+  dat
+}
+
+
+# whichRep: both, rep0, rep1
+makeCountsDMS <- function(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch) {
+  folder = makeFolderName(base_folder, condition)
+  fnames <-  list.files(folder, pattern="*.csv")
+  if( whichRep %in% c("rep0", "rep1") ) {
+    fnames = fnames[grep(whichRep,   fnames)]
+  }
+  
+  fnames = filterRepeatedResidueFiles(fnames)
+  
+  # fname = fnames[1]
+  ldf <- lapply(fnames, readResidueFile, folder = folder, condition=condition, 
+                threshold=threshold, synCoding=synCoding, remove_one_mismatch=remove_one_mismatch)
+  
+  
+  df = ldf[[1]]
+  for(i in 2:length(ldf)) {
+    df = rbind(df, ldf[[i]])  
+  }
+  df = df[order(as.numeric(df$residue)),]
+  df
+}
+
+
+makeGluGal <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch) {
+  base_folder = "csv_files/"
+  
+  galDat = makeCountsDMS(base_folder, condition="Gal", whichRep = whichRep, threshold=gal_thr, synCoding=synCoding, remove_one_mismatch=remove_one_mismatch)
+  gluDat = makeCountsDMS(base_folder, condition="Glu", whichRep = whichRep, threshold=glu_thr, synCoding=synCoding, remove_one_mismatch=remove_one_mismatch)
+  
+  
+  sharedIDs = intersect(gluDat$id, galDat$id)
+  
+  glu = gluDat[match(sharedIDs, gluDat$id),]
+  gal = galDat[match(sharedIDs, galDat$id),]
+  all(glu$id == gal$id)
+  
+  glu_gal = gal
+  
+  glu_gal$condition = "Glu_Gal"
+  if(normMethod == "ratio") {
+    glu_gal$count =  log2((glu$count+1)/(gal$count+1))
+    glu_gal$corrected_count =  log2((glu$corrected_count+1)/(gal$corrected_count+1))
+    
+  } else if(normMethod == "subtract") {
+    glu_gal$count =  glu$count - gal$count
+    glu_gal$corrected_count = glu$corrected_count - gal$corrected_count
+  }
+  
+  glu_gal
+}
+
+toWideFormat <- function(df) {
+  sets = unique(df$set)
+  df_all = list()
+  for(set in sets) {
+    df2 = df[which(df$set == set),]
+    df2$id2 = paste0(df2$set, "_residue", df2$residue, "_", df2$trans)
+    
+    # counts in a wide format
+    tmpWideDat = df2 %>% pivot_wider(names_from = id2, values_from = count)
+    
+    # remove non-count columns and transpose it
+    indexes = intersect(grep("set", colnames(tmpWideDat)), grep("residue", colnames(tmpWideDat)))
+    wideDat = t(tmpWideDat[, indexes])
+    
+    # convert it to the list
+    wideListDat = apply(wideDat, 1, function(x){ x[!is.na(x)]})
+    print(class(wideListDat))
+    df_all = c(df_all, wideListDat)
+  }
+  
+  mutNames = makeMutNames()
+  res <- vector("list", length = length(mutNames))
+  names(res) = mutNames
+  
+  indexes = match(names(df_all), mutNames)
+  res[indexes] = df_all
+  res
+}
+
+makeMutNames <- function() {
+  muts = getMutations()
+  mutNames  = c()
+  residues = 1:306
+  for(resid in residues) {
+    set = setForResidue[resid]
+    refSite1 = refAtPos(resid-1, globalRef)
+    refSite3 = refAtPos(resid+1, globalRef)
+    
+    mutNames = c(mutNames, paste0(set, "_residue", resid, "_", refSite1, muts, refSite3))
+  }
+  mutNames
+}
+
+makeDMS_data <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch){
+  glu_gal = makeGluGal(whichRep, gal_thr = gal_thr, glu_thr = glu_thr, normMethod, synCoding, remove_one_mismatch)
+  df = glu_gal
+  
+  wide = toWideFormat(df)
+  if(addZero) {
+    lens = lapply(wide, length)
+    
+    for(i in which(lens == 0)) {
+      wide[[i]] = c(0, 0)  
+    }
+    for(i in which(lens == 1)) {
+      wide[[i]] = c(wide[[i]], 0)  
+    }
+  }
+  
+  dmsWT = computeWT_counts(df)
+  
+  dms = list(counts=wide, wildType=dmsWT, annot=annotate(names(wide)))
+  class(dms) = "dms"
+  dms
+}
+
+
+seq_3CL = ref_genetic()
+globalRef = find_ref()
+
+
+base_folder = "csv_files/"
+
+library(tidyverse)
+library('Biostrings')
+
+condition = "Gal"
+whichRep = "rep0"
+remove_one_mismatch = FALSE
+threshold = 0
+synCoding = TRUE
+gal_dms =  makeCountsDMS(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch)
+
+
+
+# set the final settings
+gal_thr = 0
+glu_thr = 6
+WT_method = "set"
+normMethod = "ratio"
+
+dms_data = makeDMS_data(whichRep, gal_thr, glu_thr, normMethod, oligoFilter, addZero, synCoding)
+
+makeGluGal(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch)
