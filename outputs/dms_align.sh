@@ -1,23 +1,5 @@
-
-> # wiritn the rhead
-> cat("#!/usr/bin/env bash\n \n") 
 #!/usr/bin/env bash
  
-
-> samfixcigar = "java -jar /home/bahari/tools/jvarkit/dist/samfixcigar.jar"
-
-> # cat("bwa index /home/bahari/SarsCov/Ref_3CL.fasta\n")
-> 
-> sets = sort(unique(df$Set))
-
-> if(reverse)
-+   sets = rev(sets)
-
-> for(set in sets) {
-+   folder = sets_to_folders[set]
-+   # cat("cd ", folder, " \n", sep='')
-+   cat("echo ", set, "-started \n \n \n", sep='')
-+    .... [TRUNCATED] 
 echo Set1-started 
  
  
@@ -2653,5 +2635,3 @@ R CMD BATCH --no-save --no-restore '--args  bam_folder="../outputs/bam_files/Grl
 fi
 echo ----------------------- 
  
-
-> sink()

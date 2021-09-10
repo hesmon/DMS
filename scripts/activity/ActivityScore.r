@@ -64,8 +64,9 @@ filterRepeatedResidueFiles <- function(fnames)
   nonSetRs = nonSetRs[-rm_indexes,]
   
   new_fnames = rownames(rbind(setRs, nonSetRs))
-  new_fnames = new_fnames[-grep("setR1_residue140", new_fnames)]
-  new_fnames[-grep("setR1_residue141", new_fnames)]
+  # new_fnames = new_fnames[-grep("setR1_residue140", new_fnames)]
+  # new_fnames[-grep("setR1_residue141", new_fnames)]
+  new_fnames
 }
 
 
@@ -125,6 +126,17 @@ readResidueFile <- function(folder, fname, condition, threshold, synCoding, remo
   dat$count = dat$count/normFactor
   dat$corrected_count = dat$corrected_count/normFactor
   
+  
+  resid = dat$residue[1]
+  dat$AA_WT = 0
+  refSite2 = refAtPos(resid, globalRef)
+  indexes = which(sapply(dat$trans, function(x){refSite2 == substr(x, 2, 2)}))
+  if(length(indexes) == 0) {
+    # print("error")
+    # print(fname)
+  } else {
+    dat[indexes, "AA_WT"] = 1
+  }
   
   if(synCoding == FALSE) {
     dat = dat[, -which(colnames(dat) %in% c("id", "gen_code", "DistFromWT")) ]
@@ -232,22 +244,32 @@ makeMutNames <- function() {
   mutNames
 }
 
+
+computeWT_counts <- function(df) {
+  WT_all = df[which(df$AA_WT == 1), "count"]
+  
+  residues = 1:306
+  
+  WT_residue = sapply(residues, function(r) { 
+    df[df$residue == r & df$AA_WT == 1, "count" ]
+  } )
+  names(WT_residue) = residues
+  
+  sets = sort(unique(df$set))
+  WT_set = sapply(sets, function(s) { 
+    df[df$set == s & df$AA_WT == 1, "count" ]
+  } )
+  names(WT_set) = sets
+  
+  list(WT_all=WT_all, WT_residue=WT_residue, WT_set=WT_set)  
+}
+
+
 makeDMS_data <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch){
-  glu_gal = makeGluGal(whichRep, gal_thr = gal_thr, glu_thr = glu_thr, normMethod, synCoding, remove_one_mismatch)
-  df = glu_gal
-  
+  df = makeGluGal(whichRep, gal_thr = gal_thr, glu_thr = glu_thr, normMethod, synCoding, remove_one_mismatch)
+
   wide = toWideFormat(df)
-  if(addZero) {
-    lens = lapply(wide, length)
-    
-    for(i in which(lens == 0)) {
-      wide[[i]] = c(0, 0)  
-    }
-    for(i in which(lens == 1)) {
-      wide[[i]] = c(wide[[i]], 0)  
-    }
-  }
-  
+
   dmsWT = computeWT_counts(df)
   
   dms = list(counts=wide, wildType=dmsWT, annot=annotate(names(wide)))
@@ -255,6 +277,38 @@ makeDMS_data <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remo
   dms
 }
 
+getSetsForResidue <- function() {
+  base_folder = "csv_files/"
+  condition = "Gal"
+  folder = makeFolderName(base_folder, condition)
+  fnames <-  list.files(folder, pattern="*.csv")
+  fnames= fnames[grep( "rep0", fnames)]
+  fnames = filterRepeatedResidueFiles(fnames)
+  
+  df = data.frame()
+  for(fname in fnames) {
+    df = rbind(df, unlist(parseFileName(fname) )  )
+  }
+  
+  fnames[grep("141", fnames )]
+  df$X.134.
+  rownames(df)  = df$X.134.
+  
+  df2 = df[order(as.numeric(rownames(df))), 1, drop=FALSE]
+  
+  sets = df2[, 1]
+  names(sets) = rownames(df2)
+  setForResidue = sets
+  setForResidue
+}
+
+#  access function for seq ref at site "pos"
+refAtPos <- function(pos, ref) {
+  substr(ref, pos + 1, pos + 1)
+}
+
+
+setForResidue = getSetsForResidue()
 
 seq_3CL = ref_genetic()
 globalRef = find_ref()
@@ -280,6 +334,6 @@ glu_thr = 6
 WT_method = "set"
 normMethod = "ratio"
 
-dms_data = makeDMS_data(whichRep, gal_thr, glu_thr, normMethod, oligoFilter, addZero, synCoding)
+dms_data = makeDMS_data(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch)
+head(dms_data)
 
-makeGluGal(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch)
