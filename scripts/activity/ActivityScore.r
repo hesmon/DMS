@@ -264,6 +264,32 @@ computeWT_counts <- function(df) {
   list(WT_all=WT_all, WT_residue=WT_residue, WT_set=WT_set)  
 }
 
+annotateMuts <- function(mutIDs) {
+  annots = data.frame()
+  for(mut in mutIDs) {
+    splits = strsplit(mut, "_")[[1]]
+    
+    annots = rbind(annots, data.frame(set = splits[1], resid=as.numeric(substring(splits[2], 8)), codon = splits[3], 
+                                      mut = substr(splits[3], 2,2)))
+  }
+  
+  annots$clinical_status = ""
+  
+  clinical_data <- read.csv("input_data/210702_COVIDCG_3CLpro_singles_nodel_filt.csv")
+  for(i in 1:nrow(clinical_data)) {
+    resid = clinical_data[i, ]$Residue
+    mut = clinical_data[i, ]$mut_AA
+    annots[which(annots$resid == resid &annots$mut == mut), "clinical_status"] = "clinical"
+  }
+  
+  annots$WT = 0
+  for(resid in 1:max(annots$resid)) {
+    refSite = refAtPos(resid, globalRef)
+    annots[which(annots$resid == resid & annots$mut == refSite), "WT"] = 1
+  }
+  
+  annots
+}
 
 makeDMS_data <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch){
   df = makeGluGal(whichRep, gal_thr = gal_thr, glu_thr = glu_thr, normMethod, synCoding, remove_one_mismatch)
@@ -272,7 +298,7 @@ makeDMS_data <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remo
 
   dmsWT = computeWT_counts(df)
   
-  dms = list(counts=wide, wildType=dmsWT, annot=annotate(names(wide)))
+  dms = list(counts=wide, wildType=dmsWT, annot=annotateMuts(names(wide)))
   class(dms) = "dms"
   dms
 }
