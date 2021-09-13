@@ -389,7 +389,7 @@ condition = "Gal"
 whichRep = "rep0"
 remove_one_mismatch = FALSE
 threshold = 0
-synCoding = FALSE
+synCoding = TRUE
 # gal_dms =  makeCountsDMS(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch)
 
 
@@ -397,6 +397,8 @@ synCoding = FALSE
 # set the final settings
 gal_thr = 30
 glu_thr = 30
+# WT_method = "set"
+WT_method = "residue"
 WT_method = "set"
 normMethod = "ratio"
 
@@ -426,37 +428,7 @@ act0$AS[which(act0$AS< -20)]  = -20
 act1$AS[which(act1$AS< -20)]  = -20
 
 
-pdf(paste0(figure_folder, "final_scatter.pdf"))
-scattor.plot(act0, act1)
-dev.off()
-# 
-# 
-# normMethod = "subtract"
-# 
-# # Task 1: plot histogram for syn coding
-# act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
-#                              whichRep = "both", normMethod = normMethod, synCoding=synCoding,
-#                              remove_one_mismatch = remove_one_mismatch)
-# 
-# # pdf(paste0(figure_folder, "final_hist.pdf"))
-# hist.plot(act)
-# # dev.off()
-# 
-# 
-# act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
-#                               whichRep = "rep0", normMethod = normMethod, synCoding=synCoding,
-#                               remove_one_mismatch = remove_one_mismatch)
-# 
-# act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
-#                               whichRep = "rep1", normMethod = normMethod, synCoding==synCoding,
-#                               remove_one_mismatch = remove_one_mismatch)
-# 
-# cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
-# 
-# act0$AS[which(act0$AS< -20)]  = -20
-# act1$AS[which(act1$AS< -20)]  = -20
-# 
-# 
 # pdf(paste0(figure_folder, "final_scatter.pdf"))
-# scattor.plot(act0, act1)
+scattor.plot(act0, act1)
 # dev.off()
+# 
