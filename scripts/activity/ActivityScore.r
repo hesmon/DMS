@@ -83,7 +83,7 @@ parseFileName <- function(fname) {
 
 readResidueFile <- function(folder, fname, condition, threshold, synCoding, remove_one_mismatch)
 {
-  print(fname)
+  # print(fname)
   full_fname = paste0(folder, fname)
   dat = read.csv(full_fname)
   
@@ -215,9 +215,14 @@ toWideFormat <- function(df) {
     indexes = intersect(grep("set", colnames(tmpWideDat)), grep("residue", colnames(tmpWideDat)))
     wideDat = t(tmpWideDat[, indexes])
     
-    # convert it to the list
     wideListDat = apply(wideDat, 1, function(x){ x[!is.na(x)]})
-    print(class(wideListDat))
+    # convert it to the list
+    if(is.matrix(wideListDat)) {
+      tmp = lapply(seq_len(ncol(wideListDat)), function(i) wideListDat[,i])
+      names(tmp) = colnames(wideListDat)
+      wideListDat = tmp
+    }
+
     df_all = c(df_all, wideListDat)
   }
   
@@ -333,6 +338,39 @@ refAtPos <- function(pos, ref) {
   substr(ref, pos + 1, pos + 1)
 }
 
+# WT_method: residue or set
+computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMethod, synCoding, 
+                                   remove_one_mismatch) {
+  dms_data = makeDMS_data(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch)
+  
+  result = data.frame()
+  for(i in 1:length(dms_data$counts)) {
+    mut_data = dms_data$counts[[i]]
+    
+    if(WT_method == "residue") {
+      resid = dms_data$annot$resid[i]
+      WT_data = dms_data$wildType$WT_residue[[resid]]
+    } else if(WT_method == "set") {
+      set = dms_data$annot$set[i]
+      WT_data = dms_data$wildType$WT_set[[set]]
+    } else {
+      stop("unkown WT_method")
+    }
+    if(length(mut_data) > 1 & length(WT_data) > 1) {
+      ttest_res = t.test(mut_data, WT_data, less="less")
+      result = rbind(result, c(ttest_res$statistic, ttest_res$p.value, length(mut_data), length(WT_data)))
+    } else {
+      result = rbind(result, c(NA, NA, NA, NA))
+    }
+  }
+  colnames(result) = c("AS", "AS_pvalue", "nr_mut", "nr_wt")
+  result$AS_fdr = p.adjust(result$AS_pvalue, method = "fdr")
+  rownames(result) = names(dms_data$counts)
+  
+  result = cbind(result, dms_data$annot)
+  result
+}
+
 
 setForResidue = getSetsForResidue()
 
@@ -344,22 +382,81 @@ base_folder = "csv_files/"
 
 library(tidyverse)
 library('Biostrings')
+library(ggExtra)
+source("scripts/activity/plotting.r")
 
 condition = "Gal"
 whichRep = "rep0"
 remove_one_mismatch = FALSE
 threshold = 0
-synCoding = TRUE
-gal_dms =  makeCountsDMS(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch)
+synCoding = FALSE
+# gal_dms =  makeCountsDMS(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch)
 
 
 
 # set the final settings
-gal_thr = 0
-glu_thr = 6
+gal_thr = 30
+glu_thr = 30
 WT_method = "set"
 normMethod = "ratio"
 
-dms_data = makeDMS_data(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch)
-head(dms_data)
+# Task 1: plot histogram for syn coding
+act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
+                             whichRep = "both", normMethod = normMethod, synCoding=synCoding,
+                             remove_one_mismatch = remove_one_mismatch)
 
+# pdf(paste0(figure_folder, "final_hist.pdf"))
+hist.plot(act)
+# dev.off()
+
+# Task 2: correlation/scatter plot
+act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
+                              whichRep = "rep0", normMethod = normMethod, synCoding=synCoding,
+                              remove_one_mismatch = remove_one_mismatch)
+
+act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
+                              whichRep = "rep1", normMethod = normMethod, synCoding==synCoding,
+                              remove_one_mismatch = remove_one_mismatch)
+
+cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
+
+sum(is.na(act$AS))
+
+act0$AS[which(act0$AS< -20)]  = -20
+act1$AS[which(act1$AS< -20)]  = -20
+
+
+pdf(paste0(figure_folder, "final_scatter.pdf"))
+scattor.plot(act0, act1)
+dev.off()
+# 
+# 
+# normMethod = "subtract"
+# 
+# # Task 1: plot histogram for syn coding
+# act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
+#                              whichRep = "both", normMethod = normMethod, synCoding=synCoding,
+#                              remove_one_mismatch = remove_one_mismatch)
+# 
+# # pdf(paste0(figure_folder, "final_hist.pdf"))
+# hist.plot(act)
+# # dev.off()
+# 
+# 
+# act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
+#                               whichRep = "rep0", normMethod = normMethod, synCoding=synCoding,
+#                               remove_one_mismatch = remove_one_mismatch)
+# 
+# act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
+#                               whichRep = "rep1", normMethod = normMethod, synCoding==synCoding,
+#                               remove_one_mismatch = remove_one_mismatch)
+# 
+# cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
+# 
+# act0$AS[which(act0$AS< -20)]  = -20
+# act1$AS[which(act1$AS< -20)]  = -20
+# 
+# 
+# pdf(paste0(figure_folder, "final_scatter.pdf"))
+# scattor.plot(act0, act1)
+# dev.off()
