@@ -355,7 +355,7 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
       stop("unkown WT_method")
     }
     if(length(mut_data) > 1 & length(WT_data) > 1) {
-      ttest_res = t.test(mut_data, WT_data, less="less")
+      ttest_res = t.test(mut_data, WT_data, alternative="less")
       result = rbind(result, c(ttest_res$statistic, ttest_res$p.value, length(mut_data), length(WT_data)))
     } else {
       result = rbind(result, c(NA, NA, NA, NA))
@@ -364,7 +364,6 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
   colnames(result) = c("AS", "AS_pvalue", "nr_mut", "nr_wt")
   result$AS_fdr = p.adjust(result$AS_pvalue, method = "fdr")
   rownames(result) = names(dms_data$counts)
-  
   result = cbind(result, dms_data$annot)
   result
 }

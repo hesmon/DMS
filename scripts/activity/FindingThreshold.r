@@ -5,6 +5,7 @@ library(readr)
 library(ggplot2)
 # library(hrbrthemes)
 library(ggExtra)
+library(Biostrings)
 
 source("scripts/activity/ActivityScoreFunctions.r")
 
@@ -14,7 +15,7 @@ setForResidue = getSetsForResidue()
 seq_3CL = ref_genetic()
 globalRef = find_ref()
 
-cl <- parallel::makeCluster(5)
+cl <- parallel::makeCluster(4)
 doParallel::registerDoParallel(cl)
 
 Gal_thr = Glu_thr = c(0, 10, 30, 50, 100)
@@ -56,10 +57,7 @@ corr_results = foreach(i=1:nrow(settings), .combine='rbind') %dopar% {
 
 print(proc.time() - t0)
 colnames(corr_results) = c("corr", "missing")
+corr_results = cbind(settings[, 1:3], corr_results[, c("corr", "missing")])
+rownames(corr_results) = NULL
+write.csv(corr_results, file="outputs/dms_correlation.csv", row.names = FALSE)
 
-write.csv(corr_results, file="outputs/dms_correlation.csv")
-# corr_results = cbind(settings, corr_results)
-# rownames(corr_results) = NULL
-
-
-# write.csv(corr_results, )

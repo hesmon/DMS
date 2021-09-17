@@ -1,34 +1,25 @@
+rm(list=ls())
 source("scripts/activity/ActivityScoreFunctions.r")
-
-setForResidue = getSetsForResidue()
-
-seq_3CL = ref_genetic()
-globalRef = find_ref()
-
-refAtPos()
-
-
-base_folder = "csv_files/"
-
 library(tidyverse)
 library('Biostrings')
 library(ggExtra)
 source("scripts/activity/plotting.r")
 
+setForResidue = getSetsForResidue()
+
+
+seq_3CL = ref_genetic()
+globalRef = find_ref()
+
+base_folder = "csv_files/"
+
 condition = "Gal"
-whichRep = "rep0"
 remove_one_mismatch = FALSE
-threshold = 0
 synCoding = TRUE
-# gal_dms =  makeCountsDMS(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch)
-
-
 
 # set the final settings
-gal_thr = 30
-glu_thr = 30
-# WT_method = "set"
-WT_method = "residue"
+gal_thr = 0
+glu_thr = 0
 WT_method = "set"
 normMethod = "ratio"
 
@@ -38,9 +29,16 @@ act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = W
                              whichRep = "both", normMethod = normMethod, synCoding=synCoding,
                              remove_one_mismatch = remove_one_mismatch)
 
-# pdf(paste0(figure_folder, "final_hist.pdf"))
+figure_folder = "outputs/figures/"
+dir.create(figure_folder, recursive = TRUE, showWarnings = FALSE)
+
+pdf(paste0(figure_folder, "hist_0_0.pdf"))
 hist.plot(act)
-# dev.off()
+dev.off()
+
+act = act[, c("nr_mut", "nr_wt", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon", 
+                    "mut",  "WT", "clinical_status")]
+write.csv(act, file="outputs/activity_scores.csv")
 
 # Task 2: correlation/scatter plot
 act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
@@ -52,14 +50,18 @@ act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = 
                               remove_one_mismatch = remove_one_mismatch)
 
 cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
-
 sum(is.na(act$AS))
+
+pdf(paste0(figure_folder, "scatter_0_0.pdf"))
+scattor.plot(act0, act1)
+dev.off()
+
 
 act0$AS[which(act0$AS< -20)]  = -20
 act1$AS[which(act1$AS< -20)]  = -20
 
-
-# pdf(paste0(figure_folder, "final_scatter.pdf"))
+pdf(paste0(figure_folder, "scatter_0_0_truncated.pdf"))
 scattor.plot(act0, act1)
-# dev.off()
+dev.off()
+
 # 
