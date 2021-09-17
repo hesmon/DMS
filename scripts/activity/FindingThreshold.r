@@ -40,14 +40,19 @@ corr_results = foreach(i=1:nrow(settings), .combine='rbind') %dopar% {
   WT_method = as.character(settings[i, "WT_method"])
   
   
-  act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, whichRep = "both", normMethod = "ratio",
-                               synCoding=synCoding, remove_one_mismatch = remove_one_mismatch)
+  act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
+                               whichRep = "both", normMethod = "ratio", synCoding=synCoding, 
+                               remove_one_mismatch = remove_one_mismatch)
   missing = mean(is.na(act$AS_pvalue))
   # 
-  act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, whichRep = "rep0", normMethod = "ratio",
-                                synCoding=synCoding, remove_one_mismatch = remove_one_mismatch)
-  act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, whichRep = "rep1", normMethod = "ratio",
-                                synCoding=synCoding, remove_one_mismatch = remove_one_mismatch)
+  act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
+                                whichRep = "rep0", normMethod = "ratio", synCoding=synCoding, 
+                                remove_one_mismatch = remove_one_mismatch)
+  
+  act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
+                                whichRep = "rep1", normMethod = "ratio", synCoding=synCoding, 
+                                remove_one_mismatch = remove_one_mismatch)
+  
   corr = cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
   
   print(c(corr, missing))
