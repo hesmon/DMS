@@ -1,5 +1,3 @@
-rm(list=ls())
-
 getMutations <- function() {
   c("*", "A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R",
     "S", "T", "V", "W", "Y")
@@ -191,11 +189,11 @@ makeGluGal <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove
   glu_gal$condition = "Glu_Gal"
   if(normMethod == "ratio") {
     glu_gal$count =  log2((glu$count+1)/(gal$count+1))
-    glu_gal$corrected_count =  log2((glu$corrected_count+1)/(gal$corrected_count+1))
+    # glu_gal$corrected_count =  log2((glu$corrected_count+1)/(gal$corrected_count+1))
     
   } else if(normMethod == "subtract") {
     glu_gal$count =  glu$count - gal$count
-    glu_gal$corrected_count = glu$corrected_count - gal$corrected_count
+    # glu_gal$corrected_count = glu$corrected_count - gal$corrected_count
   }
   
   glu_gal
@@ -370,65 +368,3 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
   result = cbind(result, dms_data$annot)
   result
 }
-
-
-setForResidue = getSetsForResidue()
-
-seq_3CL = ref_genetic()
-globalRef = find_ref()
-
-
-base_folder = "csv_files/"
-
-library(tidyverse)
-library('Biostrings')
-library(ggExtra)
-source("scripts/activity/plotting.r")
-
-condition = "Gal"
-whichRep = "rep0"
-remove_one_mismatch = FALSE
-threshold = 0
-synCoding = TRUE
-# gal_dms =  makeCountsDMS(base_folder, condition, whichRep, threshold, synCoding, remove_one_mismatch)
-
-
-
-# set the final settings
-gal_thr = 30
-glu_thr = 30
-# WT_method = "set"
-WT_method = "residue"
-WT_method = "set"
-normMethod = "ratio"
-
-# Task 1: plot histogram for syn coding
-act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
-                             whichRep = "both", normMethod = normMethod, synCoding=synCoding,
-                             remove_one_mismatch = remove_one_mismatch)
-
-# pdf(paste0(figure_folder, "final_hist.pdf"))
-hist.plot(act)
-# dev.off()
-
-# Task 2: correlation/scatter plot
-act0 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
-                              whichRep = "rep0", normMethod = normMethod, synCoding=synCoding,
-                              remove_one_mismatch = remove_one_mismatch)
-
-act1 = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method,
-                              whichRep = "rep1", normMethod = normMethod, synCoding==synCoding,
-                              remove_one_mismatch = remove_one_mismatch)
-
-cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
-
-sum(is.na(act$AS))
-
-act0$AS[which(act0$AS< -20)]  = -20
-act1$AS[which(act1$AS< -20)]  = -20
-
-
-# pdf(paste0(figure_folder, "final_scatter.pdf"))
-scattor.plot(act0, act1)
-# dev.off()
-# 
