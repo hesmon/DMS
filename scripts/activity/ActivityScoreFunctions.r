@@ -319,8 +319,6 @@ getSetsForResidue <- function() {
     df = rbind(df, unlist(parseFileName(fname) )  )
   }
   
-  fnames[grep("141", fnames )]
-  df$X.134.
   rownames(df)  = df$X.134.
   
   df2 = df[order(as.numeric(rownames(df))), 1, drop=FALSE]
