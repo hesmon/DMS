@@ -21,12 +21,13 @@ hist.plot <- function(act_data){
   #plot abline:
   nrResidues = length(unique(rownames(act_data)))
   alpha =  0.05
+  y_max = 2
   #we need mutation length for this and this column don't exist in new data
   avgSampleSize = round(mean(act_data$nr_mut + act_data$nr_wt, na.rm=TRUE))
   R = qt(alpha/nrResidues, avgSampleSize)
-  hist(all_res, breaks=50, xlim=c(-20,20),ylim=c(0,0.3), col=rgb(1,0,0,0.5), xlab="Activity score", ylab="Frequency", freq = FALSE, main = "")
-  hist(clin_res, breaks=30, xlim=c(-20,20), col=rgb(0,0,1,0.5),ylim=c(0,0.3), add=T,freq = FALSE)
-  hist(stop_res, breaks=30, xlim=c(-20,20),ylim=c(0,0.3), col=rgb(0.2,0.8,0.5,0.5), add=T,freq = FALSE)
+  hist(all_res, breaks=50, xlim=c(-3,3),ylim=c(0,y_max), col=rgb(1,0,0,0.5), xlab="Activity score", ylab="Frequency", freq = FALSE, main = "")
+  hist(clin_res, breaks=30, xlim=c(-3,3), col=rgb(0,0,1,0.5),ylim=c(0,y_max), add=T,freq = FALSE)
+  hist(stop_res, breaks=30, xlim=c(-3,3),ylim=c(0,y_max), col=rgb(0.2,0.8,0.5,0.5), add=T,freq = FALSE)
   legend("topright", inset=c(0,0), legend=c("All residues","Clinical isolates","Stop residues"), col=c(rgb(1,0,0,0.5),rgb(0,0,1,0.5),rgb(0.2,0.8,0.5,0.5)), pt.cex=1, pch=15 )
   
   abline(v=R, col=c("#f3dc95"), lty=c(2), lwd=c(3))
