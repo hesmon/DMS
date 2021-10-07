@@ -16,48 +16,63 @@ rate.plot <- function(mut_data){
          box.lty=0, xpd = TRUE,  bty = "n")
 }
 
-setForResidue = getSetsForResidue()
 
+computeMutationRatesPerResidue <- function(dmsData) {
+
+  dmsData$mut2 = dmsData$mut
+  dmsData[which(dmsData$mut == "*"), "mut2"] = "stop"
+  dmsData[which(dmsData$mut != "*"), "mut2"] = "Non_syn"
+  dmsData[which(dmsData$AA_WT==1), "mut2"] = "Syn"
+  
+  table(dmsData$mut2)
+  
+  
+  df2 = dmsData %>% group_by(residue, mut2) %>%  summarise(count=sum(count))
+  df2$mut2 = as.factor(df2$mut2)
+  df2 = as.data.frame(df2)
+  
+  a = reshape(df2, timevar = "mut2", idvar = "residue", direction = "wide")
+  a[is.na(a)] = 0
+  
+  a[, 2:4] = a[, 2:4] / apply(a[, 2:4], 1, sum)
+  rownames(a) = NULL
+  a
+}
+
+figure_folder = "outputs/results/"
+dir.create(figure_folder, recursive = TRUE, showWarnings = FALSE)
+
+setForResidue = getSetsForResidue()
 
 seq_3CL = ref_genetic()
 globalRef = find_ref()
 
 base_folder = "csv_files/"
-
-condition = "Gal"
-synCoding = TRUE
-remove_one_mismatch = FALSE
 whichRep = "both"
+remove_one_mismatch = TRUE
+synCoding = TRUE
+
+
+
 gal_thr = 0
-galDat = makeCountsDMS(base_folder, condition="Gal", whichRep = whichRep, threshold=gal_thr, synCoding=synCoding, remove_one_mismatch=remove_one_mismatch)
+galDat = makeCountsDMS(base_folder, condition="Gal", whichRep = whichRep, threshold=gal_thr, synCoding=TRUE, remove_one_mismatch=remove_one_mismatch)
+mutRates = computeMutationRatesPerResidue(galDat)
 
-df = galDat
+colnames(mutRates)[2:4] = c("MR_Non_syn", "MR_stop", "MR_Syn")
 
-df$mut2 = df$mut
-df[which(df$mut == "*"), "mut2"] = "stop"
-df[which(df$mut != "*"), "mut2"] = "Non_syn"
-df[which(df$AA_WT==1), "mut2"] = "Syn"
-
-table(df$mut2)
-
-
-df2 = df %>% group_by(residue, mut2) %>%  summarise(count=sum(count))
-head(df2)
-df2$mut2 = as.factor(df2$mut2)
-df2 = as.data.frame(df2)
-
-a = reshape(df2, timevar = "mut2", idvar = "residue", direction = "wide")
-a[, 2:4] = a[, 2:4] / apply(a[, 2:4], 1, sum)
-rownames(a) = NULL
-head(a)
-
-tail(a)
-
-head(a[order(a$count.Syn, decreasing = T), ])
-
-figure_folder = "outputs/results/"
-pdf(paste0(figure_folder, "mut_rates.pdf"), width = 9, height = 6)
-rate.plot(a)
+write.csv(mutRates, file=paste0(figure_folder, "mut_rates_gal.csv"), row.names = F)
+pdf(paste0(figure_folder, "mut_rates_gal.pdf"), width = 9, height = 6)
+rate.plot(mutRates)
 dev.off()
 
-rate.plot(mut_data)
+glu_thr = 0
+gluDat = makeCountsDMS(base_folder, condition="Glu", whichRep = whichRep, threshold=11, synCoding=TRUE, remove_one_mismatch=remove_one_mismatch)
+mutRates = computeMutationRatesPerResidue(galDat)
+
+colnames(mutRates)[2:4] = c("MR_Non_syn", "MR_stop", "MR_Syn")
+
+write.csv(mutRates, file=paste0(figure_folder, "mut_rates_glu_10.csv"), row.names = F)
+pdf(paste0(figure_folder, "mut_rates_glu_10.pdf"), width = 9, height = 6)
+rate.plot(mutRates)
+dev.off()
+
