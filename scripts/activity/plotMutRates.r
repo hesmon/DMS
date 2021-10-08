@@ -39,7 +39,7 @@ computeMutationRatesPerResidue <- function(dmsData) {
   a
 }
 
-figure_folder = "outputs/results/"
+figure_folder = "outputs/results/mutation_rates/"
 dir.create(figure_folder, recursive = TRUE, showWarnings = FALSE)
 
 setForResidue = getSetsForResidue()
@@ -65,8 +65,8 @@ pdf(paste0(figure_folder, "mut_rates_gal.pdf"), width = 9, height = 6)
 rate.plot(mutRates)
 dev.off()
 
-glu_thr = 0
-gluDat = makeCountsDMS(base_folder, condition="Glu", whichRep = whichRep, threshold=11, synCoding=TRUE, remove_one_mismatch=remove_one_mismatch)
+glu_thr = 11
+gluDat = makeCountsDMS(base_folder, condition="Glu", whichRep = whichRep, threshold=glu_thr, synCoding=TRUE, remove_one_mismatch=remove_one_mismatch)
 mutRates = computeMutationRatesPerResidue(galDat)
 
 colnames(mutRates)[2:4] = c("MR_Non_syn", "MR_stop", "MR_Syn")

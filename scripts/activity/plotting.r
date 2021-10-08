@@ -14,10 +14,14 @@ scattor.plot <- function(data_act0,data_act1){
   ggMarginal(p, type="histogram",xparams = list(fill = "#E7B800",na.rm=TRUE),yparams = list(fill = "#FC4E07",na.rm=TRUE)) 
 }
 
-hist.plot <- function(act_data){
-  all_res = act_data$AS 
-  clin_res = (act_data[which(act_data$clinical_status =="clinical"),])$AS 
-  stop_res = (act_data[which(act_data$mut == "*"),])$AS
+hist.plot <- function(act_data, scaled=FALSE){
+  AS_var = "AS"  
+  if( scaled) {
+    AS_var = "AS_scaled"
+  }
+  all_res = act_data[, AS_var]
+  clin_res = (act_data[which(act_data$clinical_status =="clinical"), AS_var])
+  stop_res = (act_data[which(act_data$mut == "*"), AS_var])
   #plot abline:
   nrResidues = length(unique(rownames(act_data)))
   alpha =  0.05

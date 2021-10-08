@@ -363,5 +363,32 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
   result$AS_fdr = p.adjust(result$AS_pvalue, method = "fdr")
   rownames(result) = names(dms_data$counts)
   result = cbind(result, dms_data$annot)
+  result$AS_raw = result$AS
+  result$AS = rescaleActivityScores(result)
+  
+  result = result[, c("nr_mut", "nr_wt", "AS_raw", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon", 
+                "mut",  "WT", "clinical_status")]
+  
   result
+}
+
+.rescaleToWT_STOP <- function(values, stop_value, wt_value){
+  (values - stop_value) /(wt_value - stop_value) -1
+}
+
+rescaleActivityScores <- function(act) {
+  sets = unique(act$set)
+  for(s in sets) {
+    t = act[act$set == s, ]
+    
+    stop_value = mean(t$AS[t$mut == "*"],  na.rm=T )
+    wt_value = mean(t$AS[t$WT == 1],  na.rm=T )
+    
+    a = .rescaleToWT_STOP(t$AS, stop_value, wt_value)
+    stop_value = mean(a[t$mut == "*"],  na.rm=T )
+    wt_value = mean(a[t$WT == 1],  na.rm=T )
+    
+    act[act$set == s, "AS_scaled"] = a
+  }
+  act$AS_scaled
 }
