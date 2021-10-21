@@ -336,7 +336,7 @@ refAtPos <- function(pos, ref) {
 
 # WT_method: residue or set
 computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMethod, synCoding, 
-                                   remove_one_mismatch) {
+                                   remove_one_mismatch, onlyToWT) {
   dms_data = makeDMS_data(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove_one_mismatch)
   
   result = data.frame()
@@ -363,12 +363,12 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
   result$AS_fdr = p.adjust(result$AS_pvalue, method = "fdr")
   rownames(result) = names(dms_data$counts)
   result = cbind(result, dms_data$annot)
-  result$AS_raw = result$AS
-  result$AS = rescaleActivityScores(result)
-  
-  result = result[, c("nr_mut", "nr_wt", "AS_raw", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon", 
-                "mut",  "WT", "clinical_status")]
-  
+  # result$AS_raw = result$AS
+  # result$AS = rescaleActivityScores(result)
+  # result = result[, c("nr_mut", "nr_wt", "AS_raw", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon",
+  #                "mut",  "WT", "clinical_status")]
+  result = result[, c("nr_mut", "nr_wt", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon", 
+                      "mut",  "WT", "clinical_status")]
   result
 }
 
@@ -376,19 +376,28 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
   (values - stop_value) /(wt_value - stop_value) -1
 }
 
-rescaleActivityScores <- function(act) {
+rescaleActivityScores <- function(act, onlyToWT) {
+  act$AS_raw = act$AS
+  
   sets = unique(act$set)
   for(s in sets) {
-    t = act[act$set == s, ]
+    indexes = which(act$set == s)
+    t = act[indexes, ]
     
     stop_value = mean(t$AS[t$mut == "*"],  na.rm=T )
     wt_value = mean(t$AS[t$WT == 1],  na.rm=T )
     
-    a = .rescaleToWT_STOP(t$AS, stop_value, wt_value)
-    stop_value = mean(a[t$mut == "*"],  na.rm=T )
-    wt_value = mean(a[t$WT == 1],  na.rm=T )
-    
-    act[act$set == s, "AS_scaled"] = a
+    if(onlyToWT) {
+      a = t$AS - wt_value
+    } else {
+      a = .rescaleToWT_STOP(t$AS, stop_value, wt_value)  
+    }
+
+    act[indexes, "AS_scaled"] = a
   }
-  act$AS_scaled
+  
+  act$AS = act$AS_scaled
+  act = act[, c("nr_mut", "nr_wt", "AS_raw", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon",
+                "mut",  "WT", "clinical_status")]
+  act
 }

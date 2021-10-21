@@ -10,8 +10,19 @@ x = nr_muts[which(!is.na(nr_muts))]
 
 length(x)
 
-pdf("outputs/results/number_of_codings.pdf")
+output_folder = "outputs/results/number_of_codings/"
+dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+
+
+pdf(paste0(output_folder,"number_of_codings.pdf"))
 ecdfPlot(x, discrete=TRUE, main ='', ylab="Fraction", xlab="Number of codings",
          ecdf.col = "blue")
 dev.off()
 
+a = ecdfPlot(x, discrete=TRUE, main ='', ylab="Fraction", xlab="Number of codings",
+         ecdf.col = "blue")
+
+dat = cbind(a$Order.Statistics, a$Cumulative.Probabilities)
+colnames(dat) = c("Number of codings", "Cumulative Probability")
+
+write.csv(dat, file=paste0(output_folder,"number_of_codings.csv"))

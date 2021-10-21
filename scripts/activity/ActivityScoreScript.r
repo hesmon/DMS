@@ -6,8 +6,10 @@ library(ggExtra)
 source("scripts/activity/plotting.r")
 
 
-runActivityScript <- function(gal_thr, glu_thr, onlyCompleteData = FALSE, WT_method = "set", normMethod = "ratio", remove_one_mismatch = TRUE,
-                              synCoding = TRUE, output_folder){
+runActivityScript <- function(gal_thr, glu_thr, WT_method = "set", normMethod = "ratio", remove_one_mismatch = TRUE,
+                              synCoding = TRUE, output_folder, onlyToWT){
+              # onlyCompleteData = FALSE, 
+  
   act = computeAcitivityScores(gal_thr = gal_thr, glu_thr = glu_thr, WT_method = WT_method, 
                                whichRep = "both", normMethod = normMethod, synCoding=synCoding,
                                remove_one_mismatch = remove_one_mismatch)
@@ -20,11 +22,22 @@ runActivityScript <- function(gal_thr, glu_thr, onlyCompleteData = FALSE, WT_met
                                 whichRep = "rep1", normMethod = normMethod, synCoding==synCoding,
                                 remove_one_mismatch = remove_one_mismatch)
   
-  if(onlyCompleteData) {
-    indexes = which(is.na(act0$AS) | is.na(act1$AS))
-    act[indexes,] = act0[indexes,] = act1[indexes,] = NA
-  }
+  indexes = which(is.na(act0$AS) & is.na(act1$AS))
+  act[indexes,] = act0[indexes,] = act1[indexes,] = NA
+  
+  # if(onlyCompleteData) {
+  #   indexes = which(is.na(act0$AS) | is.na(act1$AS))
+  #   act[indexes,] = act0[indexes,] = act1[indexes,] = NA
+  # }
 
+  # result$AS_raw = result$AS
+  # result$AS = rescaleActivityScores(result)
+  # result = result[, c("nr_mut", "nr_wt", "AS_raw", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon",
+  #                "mut",  "WT", "clinical_status")]
+  
+  act = rescaleActivityScores(act, onlyToWT)
+  act0 = rescaleActivityScores(act0, onlyToWT)
+  act1 = rescaleActivityScores(act1, onlyToWT)
     # Task 1: plot histogram for syn coding
   dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
   
@@ -63,12 +76,8 @@ globalRef = find_ref()
 # set the final settings
 gal_thr = 0
 glu_thr = 11  # equivalent to gal_thr >= 10
-output_folder = "outputs/results/default_settings/"
-runActivityScript(gal_thr, glu_thr, onlyCompleteData = FALSE, output_folder=output_folder)
+output_folder = "outputs/results/normalized_to_wt_and_stop/"
+runActivityScript(gal_thr, glu_thr, output_folder=output_folder, onlyToWT=FALSE)
 
-output_folder = "outputs/results/not_na_in_either_rep/"
-runActivityScript(gal_thr, glu_thr, onlyCompleteData = TRUE, output_folder=output_folder)
-
-
-
-##### 
+output_folder = "outputs/results/normalized_only_to_wt/"
+runActivityScript(gal_thr, glu_thr, output_folder=output_folder, onlyToWT=TRUE)
