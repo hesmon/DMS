@@ -1,8 +1,8 @@
 rm(list=ls())
 library(EnvStats)
 
-act0 = read.csv("outputs/results/default_settings/activity_scores_rep0.csv")
-act1 = read.csv("outputs/results/default_settings/activity_scores_rep1.csv")
+act0 = read.csv("outputs/results/normalized_to_wt_and_stop/activity_scores_rep0.csv")
+act1 = read.csv("outputs/results/normalized_to_wt_and_stop/activity_scores_rep1.csv")
 
 nr_muts = apply(cbind(act0$nr_mut, act1$nr_mut), 1, max)
 

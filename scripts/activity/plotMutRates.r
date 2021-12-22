@@ -27,16 +27,21 @@ computeMutationRatesPerResidue <- function(dmsData) {
   table(dmsData$mut2)
   
   
-  df2 = dmsData %>% group_by(residue, mut2) %>%  summarise(count=sum(count))
+  df2 = dmsData %>% group_by(residue, mut2, rep) %>%  summarise(count=sum(count))
   df2$mut2 = as.factor(df2$mut2)
   df2 = as.data.frame(df2)
   
-  a = reshape(df2, timevar = "mut2", idvar = "residue", direction = "wide")
+  a = reshape(df2, timevar = "mut2", idvar = c("residue", "rep"), direction = "wide")
   a[is.na(a)] = 0
   
-  a[, 2:4] = a[, 2:4] / apply(a[, 2:4], 1, sum)
+  a[, 3:5] = a[, 3:5] / apply(a[, 3:5], 1, sum)
   rownames(a) = NULL
-  a
+  
+  b = a %>% group_by(residue) %>%  summarise(count.Non_syn=mean(count.Non_syn), count.stop = mean(count.stop), 
+                                             count.Syn=mean(count.Syn) )
+  
+  b = as.data.frame(b)
+  b
 }
 
 figure_folder = "outputs/results/mutation_rates/"
@@ -67,7 +72,7 @@ dev.off()
 
 glu_thr = 11
 gluDat = makeCountsDMS(base_folder, condition="Glu", whichRep = whichRep, threshold=glu_thr, synCoding=TRUE, remove_one_mismatch=remove_one_mismatch)
-mutRates = computeMutationRatesPerResidue(galDat)
+mutRates = computeMutationRatesPerResidue(gluDat)
 
 colnames(mutRates)[2:4] = c("MR_Non_syn", "MR_stop", "MR_Syn")
 

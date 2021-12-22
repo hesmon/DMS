@@ -116,7 +116,7 @@ readResidueFile <- function(folder, fname, condition, threshold, synCoding, remo
   
   colnames(dat)[which(colnames(dat) == "resid")]  = "residue"
   
-  native_wt_index = nrow(dat)
+  native_wt_index = which(dat$WT)
   
   normFactor = dat[native_wt_index, "count"]
   
