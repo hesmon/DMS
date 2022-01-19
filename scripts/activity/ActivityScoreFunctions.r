@@ -121,8 +121,10 @@ readResidueFile <- function(folder, fname, condition, threshold, synCoding, remo
   normFactor = dat[native_wt_index, "count"]
   
   dat = dat[-native_wt_index,, drop=FALSE ]
-  dat$count = dat$count/normFactor
-  dat$corrected_count = dat$corrected_count/normFactor
+  # dat$count = dat$count/normFactor
+  # dat$corrected_count = dat$corrected_count/normFactor
+  dat$count = (dat$count+1)/normFactor
+  dat$corrected_count = (dat$corrected_count+1)/normFactor
   
   
   resid = dat$residue[1]
@@ -188,7 +190,8 @@ makeGluGal <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove
   
   glu_gal$condition = "Glu_Gal"
   if(normMethod == "ratio") {
-    glu_gal$count =  log2((glu$count+1)/(gal$count+1))
+    # glu_gal$count =  log2((glu$count+1)/(gal$count+1))
+    glu_gal$count =  log2(glu$count/gal$count)
     # glu_gal$corrected_count =  log2((glu$corrected_count+1)/(gal$corrected_count+1))
     
   } else if(normMethod == "subtract") {
