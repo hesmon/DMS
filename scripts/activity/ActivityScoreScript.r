@@ -49,7 +49,8 @@ runActivityScript <- function(gal_thr, glu_thr, WT_method = "set", normMethod = 
   
   # Task 2: correlation/scatter plot
   
-  cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
+  spearman_cor = cor(act0$AS, act1$AS, method = "spearman", use="pairwise.complete.obs")
+  pearson_cor = cor(act0$AS, act1$AS, method = "pearson", use="pairwise.complete.obs")
   sum(is.na(act$AS))
   
   pdf(paste0(output_folder, "scatter_plot.pdf"))
@@ -66,6 +67,7 @@ runActivityScript <- function(gal_thr, glu_thr, WT_method = "set", normMethod = 
   pdf(paste0(output_folder, "scatter_truncated.pdf"))
   print(scattor.plot(act0, act1))
   dev.off()
+  c(spearman_cor, pearson_cor)
 }
 
 setForResidue = getSetsForResidue()
