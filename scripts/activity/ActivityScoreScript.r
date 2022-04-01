@@ -71,5 +71,5 @@ glu_thr = 11  # equivalent to gal_thr >= 10
 output_folder = "outputs/results/normalized_to_wt_and_stop/"
 runActivityScript(gal_thr, glu_thr, output_folder=output_folder, onlyToWT=FALSE)
 
-output_folder = "outputs/results/normalized_only_to_wt/"
-runActivityScript(gal_thr, glu_thr, output_folder=output_folder, onlyToWT=TRUE)
+# output_folder = "outputs/results/normalized_only_to_wt/"
+# runActivityScript(gal_thr, glu_thr, output_folder=output_folder, onlyToWT=TRUE)
