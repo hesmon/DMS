@@ -3,7 +3,6 @@ library(foreach)
 library('stringr')
 library(readr)
 library(ggplot2)
-# library(hrbrthemes)
 library(ggExtra)
 library(Biostrings)
 
@@ -32,7 +31,6 @@ corr_results = foreach(i=1:nrow(settings), .combine='rbind') %dopar% {
   library(tidyverse)
   
   
-  # print(i)
   glu_thr = settings[i, "Glu_thr"]
   gal_thr = settings[i, "Gal_thr"]
   remove_one_mismatch = settings[i, "remove_one_mismatch"]

@@ -57,13 +57,10 @@ filterRepeatedResidueFiles <- function(fnames)
     }
   }
   
-  # cbind(rownames(setRs[org_indexes,]), rownames(nonSetRs[rm_indexes,]))
-  
+
   nonSetRs = nonSetRs[-rm_indexes,]
   
   new_fnames = rownames(rbind(setRs, nonSetRs))
-  # new_fnames = new_fnames[-grep("setR1_residue140", new_fnames)]
-  # new_fnames[-grep("setR1_residue141", new_fnames)]
   new_fnames
 }
 
@@ -81,7 +78,6 @@ parseFileName <- function(fname) {
 
 readResidueFile <- function(folder, fname, condition, threshold, synCoding, remove_one_mismatch)
 {
-  # print(fname)
   full_fname = paste0(folder, fname)
   dat = read.csv(full_fname)
   
@@ -121,8 +117,7 @@ readResidueFile <- function(folder, fname, condition, threshold, synCoding, remo
   normFactor = dat[native_wt_index, "count"] + 1
   
   dat = dat[-native_wt_index,, drop=FALSE ]
-  # dat$count = dat$count/normFactor
-  # dat$corrected_count = dat$corrected_count/normFactor
+  
   dat$count = (dat$count+1)/normFactor
   dat$corrected_count = (dat$corrected_count+1)/normFactor
   
@@ -132,8 +127,6 @@ readResidueFile <- function(folder, fname, condition, threshold, synCoding, remo
   refSite2 = refAtPos(resid, globalRef)
   indexes = which(sapply(dat$trans, function(x){refSite2 == substr(x, 2, 2)}))
   if(length(indexes) == 0) {
-    # print("error")
-    # print(fname)
   } else {
     dat[indexes, "AA_WT"] = 1
   }
@@ -159,7 +152,6 @@ makeCountsDMS <- function(base_folder, condition, whichRep, threshold, synCoding
   
   fnames = filterRepeatedResidueFiles(fnames)
   
-  # fname = fnames[1]
   ldf <- lapply(fnames, readResidueFile, folder = folder, condition=condition, 
                 threshold=threshold, synCoding=synCoding, remove_one_mismatch=remove_one_mismatch)
   
@@ -190,13 +182,10 @@ makeGluGal <- function(whichRep, gal_thr, glu_thr, normMethod, synCoding, remove
   
   glu_gal$condition = "Glu_Gal"
   if(normMethod == "ratio") {
-    # glu_gal$count =  log2((glu$count+1)/(gal$count+1))
     glu_gal$count =  log2(glu$count/gal$count)
-    # glu_gal$corrected_count =  log2((glu$corrected_count+1)/(gal$corrected_count+1))
-    
+
   } else if(normMethod == "subtract") {
     glu_gal$count =  glu$count - gal$count
-    # glu_gal$corrected_count = glu$corrected_count - gal$corrected_count
   }
   
   glu_gal
@@ -281,7 +270,7 @@ annotateMuts <- function(mutIDs) {
   
   annots$clinical_status = ""
   
-  clinical_data <- read.csv("input_data/210702_COVIDCG_3CLpro_singles_nodel_filt.csv")
+  clinical_data <- read.csv("input_data/220325_3CLpro_clinical_variants.csv")
   for(i in 1:nrow(clinical_data)) {
     resid = clinical_data[i, ]$Residue
     mut = clinical_data[i, ]$mut_AA
@@ -366,10 +355,7 @@ computeAcitivityScores <- function(gal_thr, glu_thr, WT_method, whichRep, normMe
   result$AS_fdr = p.adjust(result$AS_pvalue, method = "fdr")
   rownames(result) = names(dms_data$counts)
   result = cbind(result, dms_data$annot)
-  # result$AS_raw = result$AS
-  # result$AS = rescaleActivityScores(result)
-  # result = result[, c("nr_mut", "nr_wt", "AS_raw", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon",
-  #                "mut",  "WT", "clinical_status")]
+  
   result = result[, c("nr_mut", "nr_wt", "AS", "AS_pvalue", "AS_fdr", "set",  "resid", "codon", 
                       "mut",  "WT", "clinical_status")]
   result

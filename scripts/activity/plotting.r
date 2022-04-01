@@ -26,7 +26,7 @@ hist.plot <- function(act_data, scaled=FALSE){
   nrResidues = length(unique(rownames(act_data)))
   alpha =  0.05
   y_max = 2
-  #we need mutation length for this and this column don't exist in new data
+  
   avgSampleSize = round(mean(act_data$nr_mut + act_data$nr_wt, na.rm=TRUE))
   R = qt(alpha/nrResidues, avgSampleSize)
   hist(all_res, breaks=50, xlim=c(-3,3),ylim=c(0,y_max), col=rgb(1,0,0,0.5), xlab="Activity score", ylab="Frequency", freq = FALSE, main = "")
